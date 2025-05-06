@@ -1,0 +1,19 @@
+---
+  - name: 'Alloy Flutter Client SDK'
+    hosts: 'localhost'
+    connection: 'local'
+    collections: 'ringier.aws_cicd'
+    gather_facts: false
+    vars:
+      aws_region: 'eu-central-1'
+      project_id: 'alloy'
+      project_version: 0.0.0
+      software_component: 'client-sdk-flutter'
+    pre_tasks:
+      - fail: msg='specify an environment (dev,stg,prod)'
+        when: env not in ['dev', 'stg', 'prod']
+      - include_vars: 'environment_vars/{{ env }}.yml'
+    roles:
+      - 'ringier.aws_cicd.init_workspace'
+      - 'aws-resources'
+      - 'ringier.aws_cicd.del_workspace'
