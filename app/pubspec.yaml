@@ -1,0 +1,71 @@
+name: alloy_sdk
+description: A pure Dart SDK for Flutter that provides contextual data fetching, user identification, and analytics tracking capabilities.
+version: 0.0.1
+homepage: https://doc.alloy.ch/ingestion/tracking/alloy-pixel-flutter-sdk
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP client for API requests
+  http: ^1.2.1
+
+  # Device information for user identification
+  device_info_plus: ^11.5.0
+
+  # Snowplow analytics tracking
+  snowplow_tracker: ^0.8.0
+
+  # Crypto utilities for UUID generation
+  crypto: ^3.0.3
+
+  # UUID generation
+  uuid: ^4.4.0
+
+  # Logging utilities
+  logging: ^1.2.0
+
+  # JSON serialization
+  json_annotation: ^4.8.1
+
+  # Meta annotations
+  meta: ^1.16.0
+
+  # RxDart for stream manipulation
+  rxdart: ^0.28.0
+
+  rx_shared_preferences: ^4.0.0
+
+  # Advertising ID for tracking
+  advertising_id: ^2.7.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Linting rules
+  flutter_lints: ^5.0.0
+
+  # Code generation for JSON serialization
+  build_runner: ^2.4.7
+
+  json_serializable: ^6.7.1
+
+  # Mocking framework for testing
+  mockito: ^5.4.2
+
+  # Test utilities
+  test: ^1.25.15
+
+  # Code coverage
+  coverage: ^1.15.0
+
+# Flutter configuration
+flutter:
+  uses-material-design: true
+
+publish_to: "none"
