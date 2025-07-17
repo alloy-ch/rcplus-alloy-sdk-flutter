@@ -73,7 +73,7 @@ class ApiClient {
   Future<Map<String, dynamic>> getContextualData(String url) async {
     final path = 'contextual-data';
     final queryParams = {
-      'url': url,
+      'uri': url,
     };
     return await get(path, queryParams: queryParams);
   }
