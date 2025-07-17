@@ -50,7 +50,8 @@ class TrackingService {
 
     final trackerConfiguration = TrackerConfiguration(
       appId: configuration.appID,
-      applicationContext: false,
+      applicationContext: true,
+      base64Encoding: true,
       devicePlatform: DevicePlatform.app,
       lifecycleAutotracking: false,
       platformContext: false,
