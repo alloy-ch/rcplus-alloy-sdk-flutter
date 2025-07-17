@@ -71,6 +71,7 @@ class ApiClient {
   /// Returns the decoded JSON response as a [Map<String, dynamic>].
   /// Throws an [ApiException] if the request fails.
   Future<Map<String, dynamic>> getContextualData(String url) async {
+    final baseUrl = 'https://contextual${_configuration.env.domainSuffix}.alloy.ch';
     final path = 'contextual-data';
     final queryParams = {
       'uri': url,
@@ -83,13 +84,12 @@ class ApiClient {
   /// Returns the decoded JSON response as a [Map<String, dynamic>].
   /// Throws an [ApiException] if the request fails.
   Future<Map<String, dynamic>> getMetadata(String cmpId) async {
-    final baseUrl = 'https://contextual${_configuration.env.domainSuffix}.alloy.ch';
     final path = 'metadata';
     final queryParams = {
       'app_id': _configuration.appID,
       'environment': 'app',
       'cmp_id': cmpId,
     };
-    return await get(baseUrl, path, queryParams: queryParams);
+    return await get(_baseUrl, path, queryParams: queryParams);
   }
 } 
