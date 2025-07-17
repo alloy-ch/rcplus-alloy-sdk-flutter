@@ -98,9 +98,6 @@ class TrackingService {
     }
 
     final storedUserIDsJson = await _storageClient.getString(AlloyKey.storedUserIdsJson, defaultValue: '').first;
-    if (storedUserIDsJson.isEmpty) {
-      return;
-    }
 
     final userIDs = UserIDs.fromJson(json.decode(storedUserIDsJson));
 
@@ -109,8 +106,6 @@ class TrackingService {
     final pageViewData = <String, dynamic>{
       'page_url': parameters.pageURL,
       'page_referer': parameters.referer,
-      'content_id': parameters.contentID,
-      'logical_path': parameters.logicalPath,
     };
     pageViewData.removeWhere((key, value) => value == null);
 
@@ -144,7 +139,7 @@ class TrackingService {
       'canonical_userid_created_at': canonicalUserIdCreatedAt > 0 ? canonicalUserIdCreatedAt : null,
     };
     if (userIDs.externalIDs != null) {
-      extendedAttributesData['external_ids'] = userIDs.externalIDs!.isNotEmpty ? jsonEncode(userIDs.externalIDs) : null;
+      extendedAttributesData['user_id_external'] = userIDs.externalIDs!.isNotEmpty ? jsonEncode(userIDs.externalIDs) : null;
     }
 
     extendedAttributesData.removeWhere((key, value) => value == null);
