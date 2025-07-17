@@ -72,11 +72,11 @@ class ApiClient {
   /// Throws an [ApiException] if the request fails.
   Future<Map<String, dynamic>> getContextualData(String url) async {
     final baseUrl = 'https://contextual${_configuration.env.domainSuffix}.alloy.ch';
-    final path = 'contextual-data';
+    final path = '/';
     final queryParams = {
       'uri': url,
     };
-    return await get(_baseUrl, path, queryParams: queryParams);
+    return await get(baseUrl, path, queryParams: queryParams);
   }
 
   /// Fetches CMP metadata for the given [cmpId] by calling the `/metadata` endpoint.
