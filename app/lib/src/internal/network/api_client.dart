@@ -30,8 +30,8 @@ class ApiClient {
   ///
   /// Returns the decoded JSON response as a [Map<String, dynamic>].
   /// Throws an [ApiException] if the response status is not 2xx.
-  Future<Map<String, dynamic>> get(String path, {Map<String, String>? queryParams}) async {
-    final uri = Uri.parse('$_baseUrl/$path').replace(queryParameters: queryParams);
+  Future<Map<String, dynamic>> get(String baseUrl, String path, {Map<String, String>? queryParams}) async {
+    final uri = Uri.parse('$baseUrl/$path').replace(queryParameters: queryParams);
     _log.info('Fetching data from $uri');
     final response = await _client.get(uri);
 
@@ -60,7 +60,7 @@ class ApiClient {
       if (combinedMap.isNotEmpty) {
         queryParams['external_ids'] = jsonEncode(combinedMap);
       }
-      return await get(path, queryParams: queryParams);
+      return await get(_baseUrl, path, queryParams: queryParams);
     } catch (e) {
       throw ApiException('Failed to resolve canonical ID');
     }
@@ -75,7 +75,7 @@ class ApiClient {
     final queryParams = {
       'uri': url,
     };
-    return await get(path, queryParams: queryParams);
+    return await get(_baseUrl, path, queryParams: queryParams);
   }
 
   /// Fetches CMP metadata for the given [cmpId] by calling the `/metadata` endpoint.
@@ -83,12 +83,13 @@ class ApiClient {
   /// Returns the decoded JSON response as a [Map<String, dynamic>].
   /// Throws an [ApiException] if the request fails.
   Future<Map<String, dynamic>> getMetadata(String cmpId) async {
+    final baseUrl = 'https://contextual${_configuration.env.domainSuffix}.alloy.ch';
     final path = 'metadata';
     final queryParams = {
       'app_id': _configuration.appID,
       'environment': 'app',
       'cmp_id': cmpId,
     };
-    return await get(path, queryParams: queryParams);
+    return await get(baseUrl, path, queryParams: queryParams);
   }
 } 
