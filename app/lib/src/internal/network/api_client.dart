@@ -72,7 +72,7 @@ class ApiClient {
   /// Throws an [ApiException] if the request fails.
   Future<Map<String, dynamic>> getContextualData(String url) async {
     final baseUrl = 'https://contextual${_configuration.env.domainSuffix}.alloy.ch';
-    final path = '/';
+    final path = '';
     final queryParams = {
       'uri': url,
     };
