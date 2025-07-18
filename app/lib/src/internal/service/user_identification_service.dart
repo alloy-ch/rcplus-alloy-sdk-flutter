@@ -132,9 +132,9 @@ class UserIdentificationService {
   String _determineCanonicalID(String domainUserID, UserIDs userIDs) {
     final artemisId = userIDs.externalIDs?['artemis_id'];
     if (artemisId != null) {
-      return _uuid.v5(null, artemisId);
+      return _uuid.v5(null, artemisId).replaceAll('-', '').toLowerCase();
     }
-    return domainUserID;
+    return domainUserID.replaceAll('-', '').toLowerCase();
   }
 
   void dispose() {

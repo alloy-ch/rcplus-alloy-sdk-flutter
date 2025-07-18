@@ -151,7 +151,7 @@ class TrackingService {
 
     _log.info('Tracking page view: ${parameters.pageURL}');
     await _tracker?.track(
-      ScreenView(name: parameters.pageURL),
+      ScreenView(name: "screen_view"),
       contexts: contexts,
     );
     _log.fine('Page view tracking call completed for: ${parameters.pageURL}');

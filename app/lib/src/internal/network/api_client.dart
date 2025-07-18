@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart' as dio;
+
 import 'api_exception.dart';
 import 'package:alloy_sdk/src/models/alloy_configuration.dart';
 import 'package:logging/logging.dart';
@@ -10,7 +11,7 @@ class ApiClient {
 
   final _log = Logger('ApiClient');
   
-  final http.Client _client;
+  final dio.Dio _client;
   
   final AlloyConfiguration _configuration;
 
@@ -19,9 +20,9 @@ class ApiClient {
   /// Optionally accepts a custom [http.Client] for testing or advanced usage.
   ApiClient({
     required AlloyConfiguration configuration,
-    http.Client? client,
+    dio.Dio? client,
   })  : _configuration = configuration,
-        _client = client ?? http.Client();
+        _client = client ?? dio.Dio();
 
   /// The base URL for the Alloy services endpoint, derived from the configuration.
   String get _baseUrl => 'https://sa-${_configuration.tenant}${_configuration.env.domainSuffix}.alloycdn.net';
@@ -31,15 +32,17 @@ class ApiClient {
   /// Returns the decoded JSON response as a [Map<String, dynamic>].
   /// Throws an [ApiException] if the response status is not 2xx.
   Future<Map<String, dynamic>> get(String baseUrl, String path, {Map<String, String>? queryParams}) async {
-    final uri = Uri.parse('$baseUrl/$path').replace(queryParameters: queryParams);
+    final uri = Uri.parse('$baseUrl/$path').toString();
     _log.info('Fetching data from $uri');
-    final response = await _client.get(uri);
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
+    final response = await _client.get(
+      uri,
+      queryParameters: queryParams,
+    );
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      return jsonDecode(response.toString()) as Map<String, dynamic>;
     } else {
-      _log.severe('Failed to load data from $path: ${response.statusCode} ${response.body}');
-      throw ApiException('Failed to load data from $path', statusCode: response.statusCode, body: response.body);
+      _log.severe('Failed to load data from $path: ${response.statusCode} ${response.toString()}');
+      throw ApiException('Failed to load data from $path', statusCode: response.statusCode, body: response.toString());
     }
   }
 
@@ -54,7 +57,7 @@ class ApiClient {
     try {
       final path = 'resolve-canonical-id';
       final queryParams = {
-        'canonical_id': canonicalID.replaceAll('-', '').toLowerCase(),
+        'canonical_id': canonicalID,
       };
       final combinedMap = userIDs.toCombinedMap();
       if (combinedMap.isNotEmpty) {
