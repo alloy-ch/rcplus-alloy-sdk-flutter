@@ -98,7 +98,23 @@ class TrackingService {
 
     final storedUserIDsJson = await _storageClient.getString(AlloyKey.storedUserIdsJson, defaultValue: '').first;
 
-    final userIDs = UserIDs.fromJson(json.decode(storedUserIDsJson));
+    UserIDs userIDs;
+
+    try {
+      if (storedUserIDsJson.isNotEmpty) {
+        final decodedJson = json.decode(storedUserIDsJson);
+        userIDs = UserIDs.fromJson(decodedJson);
+      } else {
+        _log.severe('UserIDs object is empty, returning early ...');
+        return;
+      }
+    } on FormatException catch (e) {
+      _log.severe('Error parsing JSON: $e');
+      return;
+    } catch (e) {
+      _log.severe('An unexpected error occurred during deserialization: $e');
+      return;
+    }
 
     final contexts = <SelfDescribing>[];
 

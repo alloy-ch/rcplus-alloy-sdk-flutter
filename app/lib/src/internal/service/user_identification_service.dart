@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:alloy_sdk/src/internal/utility/uuid+v5.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:alloy_sdk/src/internal/network/api_client.dart';
@@ -122,7 +123,8 @@ class UserIdentificationService {
       deviceId = androidInfo.id;
     }
 
-    final newDomainId = deviceId ?? _uuid.v4();
+    String newDomainId = deviceId ?? _uuid.v4();
+    newDomainId = newDomainId.toLowerCase();
     _log.fine('New domain user ID created: $newDomainId');
     await _storageClient.setString(AlloyKey.domainUserid, newDomainId);
     await _storageClient.setInt(AlloyKey.domainUseridCreatedAt, DateTime.now().millisecondsSinceEpoch);
@@ -132,7 +134,7 @@ class UserIdentificationService {
   String _determineCanonicalID(String domainUserID, UserIDs userIDs) {
     final artemisId = userIDs.externalIDs?['artemis_id'];
     if (artemisId != null) {
-      return _uuid.v5(null, artemisId).replaceAll('-', '').toLowerCase();
+      return generateUUIDv5(artemisId).replaceAll('-', '').toLowerCase();
     }
     return domainUserID.replaceAll('-', '').toLowerCase();
   }

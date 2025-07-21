@@ -21,7 +21,7 @@ dependencies:
   snowplow_tracker: ^0.8.0
 
   # Crypto utilities for UUID generation
-  crypto: ^3.0.3
+  crypto: ^3.0.6
 
   # UUID generation
   uuid: ^4.4.0

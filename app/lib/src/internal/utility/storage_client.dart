@@ -12,7 +12,8 @@ class StorageClient {
   Future<void> init() async {
     _prefs = RxSharedPreferences(
       await SharedPreferences.getInstance(),
-      kReleaseMode ? null : RxSharedPreferencesDefaultLogger(),
+      null,
+      // kReleaseMode ? null : RxSharedPreferencesDefaultLogger(),
     );
   }
 
