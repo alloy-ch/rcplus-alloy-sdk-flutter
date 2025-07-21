@@ -17,7 +17,7 @@ class ApiClient {
 
   /// Creates an [ApiClient] with the given [AlloyConfiguration].
   ///
-  /// Optionally accepts a custom [http.Client] for testing or advanced usage.
+  /// Optionally accepts a custom [dio.Dio] for testing or advanced usage.
   ApiClient({
     required AlloyConfiguration configuration,
     dio.Dio? client,
