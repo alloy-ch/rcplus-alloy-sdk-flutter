@@ -16,7 +16,7 @@ class TrackingService {
 
   SnowplowTracker? _tracker;
   
-  bool _isInitialized = false;
+  bool _isAllowedToTrack = false;
 
   final String _namespace = 'alloyTracker';
 
@@ -27,7 +27,7 @@ class TrackingService {
   }) : _storageClient = storageClient;
 
   Future<void> start({required AlloyConfiguration configuration}) async {
-    if (_isInitialized) {
+    if (_isAllowedToTrack) {
       _log.info('Already initialized');
       return;
     }
@@ -76,23 +76,22 @@ class TrackingService {
     );
 
     _log.info('Initialized');
-    _isInitialized = true;
+    _isAllowedToTrack = true;
   }
 
   Future<void> stop() async {
     _log.info('Stopping');
-    if (!_isInitialized || _tracker == null) {
+    if (!_isAllowedToTrack) {
       return;
     }
     await trackPageView(parameters: PageViewParameters.empty());
-    _tracker = null;
-    _isInitialized = false;
+    _isAllowedToTrack = false;
   }
 
   Future<void> trackPageView({
     required PageViewParameters parameters,
   }) async {
-    if (!_isInitialized || _tracker == null) {
+    if (!_isAllowedToTrack) {
       _log.info('Ignoring page view event, not initialized or tracker is null');
       return;
     }

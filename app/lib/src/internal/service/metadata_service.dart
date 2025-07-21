@@ -35,8 +35,8 @@ class MetadataService {
   Future<void> fetchMetadata() async {
     _log.info('Fetching metadata...');
     try {
-      final cmpId = await _storageClient.getString(AlloyKey.iabTcfCmpSdkId, defaultValue: '').first;
-      if (cmpId.isEmpty) {
+      final cmpId = await _storageClient.getInt(AlloyKey.iabTcfCmpSdkId, defaultValue: 0).first;
+      if (cmpId != 0) {
         _log.severe('CMP SDK ID is missing. Cannot fetch metadata.');
         _stateController.add(MetadataState.error);
         return;
@@ -44,7 +44,7 @@ class MetadataService {
       _log.fine('Found CMP ID: $cmpId');
 
       _log.fine('Calling /metadata endpoint with params: $cmpId, ${_configuration.appID}, app');
-      final response = await _apiClient.getMetadata(cmpId);
+      final response = await _apiClient.getMetadata(cmpId.toString());
       final metadataResponse = MetadataResponse.fromJson(response);
       _log.info('Received metadata response. Status: ${metadataResponse.cmpIsValid}');
 
