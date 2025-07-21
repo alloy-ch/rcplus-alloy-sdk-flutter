@@ -39,7 +39,7 @@ class ApiClient {
       queryParameters: queryParams,
     );
     if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
-      return jsonDecode(response.toString()) as Map<String, dynamic>;
+      return response.data as Map<String, dynamic>;
     } else {
       _log.severe('Failed to load data from $path: ${response.statusCode} ${response.toString()}');
       throw ApiException('Failed to load data from $path', statusCode: response.statusCode, body: response.toString());
