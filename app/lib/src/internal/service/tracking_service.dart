@@ -92,7 +92,7 @@ class TrackingService {
     required PageViewParameters parameters,
   }) async {
     if (!_isAllowedToTrack) {
-      _log.info('Ignoring page view event, not initialized or tracker is null');
+      _log.info('Ignoring page view event');
       return;
     }
 
