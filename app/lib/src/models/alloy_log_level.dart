@@ -5,4 +5,4 @@ enum AlloyLogLevel {
   none,
   verbose,
   warning,
-} 
+}

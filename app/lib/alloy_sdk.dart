@@ -98,4 +98,4 @@ class AlloySDK {
   void dispose() {
     _analyticsService.dispose();
   }
-} 
+}

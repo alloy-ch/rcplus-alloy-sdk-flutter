@@ -67,4 +67,4 @@ class ConsentService {
     _combinedSubscription?.cancel();
     _stateController.close();
   }
-} 
+}

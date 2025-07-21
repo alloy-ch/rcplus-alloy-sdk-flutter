@@ -13,4 +13,4 @@ class AlloyConfiguration {
     required this.appID,
     this.logLevel = AlloyLogLevel.none,
   });
-} 
+}

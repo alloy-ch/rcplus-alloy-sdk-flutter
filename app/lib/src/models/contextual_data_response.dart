@@ -31,4 +31,4 @@ class ContextualDataResponse {
   Map<String, dynamic> toJson() => _$ContextualDataResponseToJson(this);
 
   factory ContextualDataResponse.fromJson(Map<String, dynamic> json) => _$ContextualDataResponseFromJson(json);
-} 
+}

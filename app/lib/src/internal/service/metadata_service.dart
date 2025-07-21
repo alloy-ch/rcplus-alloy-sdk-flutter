@@ -60,4 +60,4 @@ class MetadataService {
     _log.fine('Disposing MetadataService.');
     _stateController.close();
   }
-} 
+}

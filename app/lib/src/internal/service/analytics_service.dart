@@ -87,4 +87,4 @@ class AnalyticsService {
     _consentService.dispose();
     _userIdentificationService.dispose();
   }
-} 
+}

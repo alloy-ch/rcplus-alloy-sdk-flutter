@@ -9,4 +9,4 @@ class ApiException implements Exception {
   String toString() {
     return 'ApiException: $message (Status code: $statusCode, Body: $body)';
   }
-} 
+}

@@ -3,4 +3,4 @@ enum MetadataState {
   invalid,
   error,
   notInitialized,
-} 
+}

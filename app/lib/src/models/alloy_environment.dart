@@ -13,4 +13,4 @@ enum AlloyEnvironment {
         return '.';
     }
   }
-} 
+}

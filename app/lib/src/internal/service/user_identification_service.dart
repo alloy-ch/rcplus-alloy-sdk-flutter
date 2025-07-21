@@ -143,4 +143,4 @@ class UserIdentificationService {
     _log.fine('Disposing...');
     _stateController.close();
   }
-} 
+}

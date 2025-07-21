@@ -8,4 +8,4 @@ enum ConsentState {
   ready,
   denied,
   notInitialized,
-} 
+}
