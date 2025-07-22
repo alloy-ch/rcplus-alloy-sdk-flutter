@@ -98,7 +98,7 @@ class TrackingService {
 
     final storedUserIDsJson = await _storageClient.getString(AlloyKey.storedUserIdsJson, defaultValue: '').first;
 
-    UserIDs userIDs;
+    UserIDs? userIDs;
 
     try {
       if (storedUserIDsJson.isNotEmpty) {
@@ -106,14 +106,11 @@ class TrackingService {
         userIDs = UserIDs.fromJson(decodedJson);
       } else {
         _log.severe('UserIDs object is empty, returning early ...');
-        return;
       }
     } on FormatException catch (e) {
       _log.severe('Error parsing JSON: $e');
-      return;
     } catch (e) {
       _log.severe('An unexpected error occurred during deserialization: $e');
-      return;
     }
 
     final contexts = <SelfDescribing>[];
@@ -145,19 +142,19 @@ class TrackingService {
     final tcfv2 = await _storageClient.getString(AlloyKey.iabTcfTcString, defaultValue: '').first;
     final domainUserIdCreatedAt = await _storageClient.getInt(AlloyKey.domainUseridCreatedAt, defaultValue: 0).first;
     final canonicalUserIdCreatedAt = await _storageClient.getInt(AlloyKey.canonicalUseridCreatedAt, defaultValue: 0).first;
-    final extendedAttributesData = {
-      'sso_userid': userIDs.ssoUserID,
+    final Map<String, dynamic> extendedAttributesData = {
       'content_id': parameters.contentID,
       'logical_path': parameters.logicalPath,
-      'tcfv2': tcfv2.isNotEmpty ? tcfv2 : null,
-      'domain_userid_created_at': domainUserIdCreatedAt > 0 ? domainUserIdCreatedAt : null,
-      'canonical_userid_created_at': canonicalUserIdCreatedAt > 0 ? canonicalUserIdCreatedAt : null,
+      if (tcfv2.isNotEmpty) 'tcfv2': tcfv2,
+      if (domainUserIdCreatedAt > 0) 'domain_userid_created_at': domainUserIdCreatedAt,
+      if (canonicalUserIdCreatedAt > 0) 'canonical_userid_created_at': canonicalUserIdCreatedAt,
     };
-    if (userIDs.externalIDs != null) {
-      extendedAttributesData['user_id_external'] = userIDs.externalIDs!.isNotEmpty ? jsonEncode(userIDs.externalIDs) : null;
+    if (userIDs?.ssoUserID != null) {
+      extendedAttributesData['sso_userid'] = userIDs!.ssoUserID;
     }
-
-    extendedAttributesData.removeWhere((key, value) => value == null);
+    if (userIDs?.externalIDs != null && userIDs!.externalIDs!.isNotEmpty) {
+      extendedAttributesData['user_id_external'] = jsonEncode(userIDs.externalIDs);
+    }
 
     contexts.add(SelfDescribing(
       schema: 'iglu:com.alloy/extended_attributes/jsonschema/1-0-0',

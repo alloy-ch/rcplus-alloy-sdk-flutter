@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:rx_shared_preferences/rx_shared_preferences.dart';
 import 'package:rxdart/rxdart.dart';
@@ -12,8 +11,7 @@ class StorageClient {
   Future<void> init() async {
     _prefs = RxSharedPreferences(
       await SharedPreferences.getInstance(),
-      null,
-      // kReleaseMode ? null : RxSharedPreferencesDefaultLogger(),
+      kReleaseMode ? null : RxSharedPreferencesDefaultLogger(),
     );
   }
 
