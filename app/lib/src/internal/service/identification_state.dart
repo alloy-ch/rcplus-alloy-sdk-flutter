@@ -1,0 +1,4 @@
+enum IdentificationState {
+  ready,
+  notInitialized,
+}
