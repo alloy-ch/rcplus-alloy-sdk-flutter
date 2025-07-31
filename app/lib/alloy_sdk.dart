@@ -91,10 +91,6 @@ class AlloySDK {
     await _analyticsService.trackPageView(parameters: parameters);
   }
 
-  void consentDidChange() {
-    _analyticsService.consentDidChange();
-  }
-
   void dispose() {
     _analyticsService.dispose();
   }

@@ -6,6 +6,7 @@ import 'package:alloy_sdk/src/internal/utility/storage_client.dart';
 import 'package:alloy_sdk/src/models/alloy_configuration.dart';
 import 'package:alloy_sdk/src/models/metadata_response.dart';
 import 'package:logging/logging.dart';
+import '../utility/preferences_observer.dart';
 import 'metadata_state.dart';
 
 class MetadataService {
@@ -35,7 +36,7 @@ class MetadataService {
   Future<void> fetchMetadata() async {
     _log.info('Fetching metadata...');
     try {
-      final cmpId = await _storageClient.getInt(AlloyKey.iabTcfCmpSdkId, defaultValue: 0).first;
+      final cmpId = await PreferencesObserver.getValue(AlloyKey.iabTcfCmpSdkId.value);
       if (cmpId == 0) {
         _log.severe('CMP SDK ID is missing. Cannot fetch metadata.');
         _stateController.add(MetadataState.error);
