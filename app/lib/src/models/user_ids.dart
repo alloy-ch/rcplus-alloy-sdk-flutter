@@ -22,7 +22,7 @@ class UserIDs {
   });
 
   static Future<UserIDs> create({
-    required String ssoUserID,
+    String? ssoUserID,
     required String? advertisingID,
     required Map<String, String>? externalIDs,
   }) async {
