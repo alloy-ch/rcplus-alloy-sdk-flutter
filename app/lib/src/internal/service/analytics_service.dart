@@ -18,7 +18,6 @@ import 'package:alloy_sdk/src/models/contextual_data_response.dart';
 
 class AnalyticsService {
   final _log = Logger('AnalyticsService');
-  late final StorageClient storageClient;
   late final ApiClient _apiClient;
   late final TCFConsentService _tcfConsentService;
   late final MetadataService _metadataService;
@@ -32,7 +31,7 @@ class AnalyticsService {
   Future<void> init({required AlloyConfiguration configuration, required StorageClient storageClient}) async {
     _log.info('Initializing...');
     _apiClient = ApiClient(configuration: configuration);
-    _tcfConsentService = TCFConsentService(storageClient: storageClient);
+    _tcfConsentService = TCFConsentService();
     _contextualService = ContextualService(apiClient: _apiClient);
     _metadataService = MetadataService(apiClient: _apiClient, storageClient: storageClient, configuration: configuration);
     _consentService = ConsentService(tcfConsentService: _tcfConsentService, metadataService: _metadataService);
@@ -55,7 +54,6 @@ class AnalyticsService {
         _trackingService.stop();
       }
     });
-    _log.info('Initialized.');
   }
 
   Future<void> resolveUser({required UserIDs userIDs}) async {
@@ -73,10 +71,6 @@ class AnalyticsService {
 
   Future<ContextualDataResponse> fetchContextualData({required String url}) async {
     return await _contextualService.fetchContextualData(url: url);
-  }
-
-  void consentDidChange() {
-    _tcfConsentService.consentDidChange();
   }
 
   void dispose() {

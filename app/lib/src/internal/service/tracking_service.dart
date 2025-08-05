@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:alloy_sdk/src/internal/utility/preferences_observer.dart';
 import 'package:logging/logging.dart';
 import 'package:advertising_id/advertising_id.dart';
 import 'package:alloy_sdk/src/models/alloy_configuration.dart';
@@ -139,7 +140,7 @@ class TrackingService {
     }
 
     // extended_attributes
-    final tcfv2 = await _storageClient.getString(AlloyKey.iabTcfTcString, defaultValue: '').first;
+    final tcfv2 = await PreferencesObserver.getValue(AlloyKey.iabTcfTcString.value);
     final domainUserIdCreatedAt = await _storageClient.getInt(AlloyKey.domainUseridCreatedAt, defaultValue: 0).first;
     final canonicalUserIdCreatedAt = await _storageClient.getInt(AlloyKey.canonicalUseridCreatedAt, defaultValue: 0).first;
     final Map<String, dynamic> extendedAttributesData = {
