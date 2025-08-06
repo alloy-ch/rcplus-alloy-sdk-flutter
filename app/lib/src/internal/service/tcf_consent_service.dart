@@ -24,12 +24,12 @@ class TCFConsentService {
     _subscription?.cancel();
     _subscription = PreferencesObserver.observe(AlloyKey.iabTcfTcString.value).listen((value) async {
         final TCFConsentState newState;
-        if (value.isEmpty) {
+        if (value?.isEmpty ?? true) {
           newState = TCFConsentState.notInitialized;
         } else {
           final purposeConsent = await PreferencesObserver.getValue(
-              AlloyKey.iabTcfPurposeConsents.value) as String;
-          newState = purposeConsent.startsWith("1")
+              AlloyKey.iabTcfPurposeConsents.value) as String?;
+          newState = (purposeConsent?.startsWith("1") ?? false)
               ? TCFConsentState.granted
               : TCFConsentState.denied;
           _log.info('State changed to $newState');

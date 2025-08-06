@@ -37,7 +37,7 @@ class MetadataService {
     _log.info('Fetching metadata...');
     try {
       final cmpId = await PreferencesObserver.getValue(AlloyKey.iabTcfCmpSdkId.value);
-      if (cmpId == 0) {
+      if (cmpId == null || cmpId == 0) {
         _log.severe('CMP SDK ID is missing. Cannot fetch metadata.');
         _stateController.add(MetadataState.error);
         return;
