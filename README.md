@@ -1,6 +1,6 @@
 # rcplus-alloy-sdk-flutter
 
-Current version: **v0.0.3**
+Current version: **v0.0.4**
 
 ## Description
 
