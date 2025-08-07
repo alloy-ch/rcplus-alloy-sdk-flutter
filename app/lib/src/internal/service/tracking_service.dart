@@ -146,7 +146,7 @@ class TrackingService {
     final Map<String, dynamic> extendedAttributesData = {
       'content_id': parameters.contentID,
       'logical_path': parameters.logicalPath,
-      if (tcfv2.isNotEmpty) 'tcfv2': tcfv2,
+      if (tcfv2?.isNotEmpty ?? false) 'tcfv2': tcfv2,
       if (domainUserIdCreatedAt > 0) 'domain_userid_created_at': domainUserIdCreatedAt,
       if (canonicalUserIdCreatedAt > 0) 'canonical_userid_created_at': canonicalUserIdCreatedAt,
     };
