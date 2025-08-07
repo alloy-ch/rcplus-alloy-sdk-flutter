@@ -120,7 +120,7 @@ class UserIdentificationService {
       deviceId = iosInfo.identifierForVendor;
     } else if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
-      deviceId = androidInfo.id;
+      deviceId = generateUUIDv5(androidInfo.id);
     }
 
     String newDomainId = deviceId ?? _uuid.v4();
