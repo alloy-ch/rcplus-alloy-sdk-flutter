@@ -25,7 +25,7 @@ internal class UserDefaultsStreamHandler: NSObject, FlutterStreamHandler {
         let allKeys = userDefaults.dictionaryRepresentation().keys
         let iabtcfKeys: [String] = filterIABTCFKeys(allKeys)
         for key in iabtcfKeys {
-            let value = userDefaults.object(forKey: key)
+            let value: Any? = userDefaults.object(forKey: key)
             lastKnownValues[key] = value
             if let serializedValue = UserDefaultsSerializer.serializeValue(value) {
                 events(["key": key, "value": serializedValue])
