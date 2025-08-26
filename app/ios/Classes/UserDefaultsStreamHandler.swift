@@ -12,7 +12,7 @@ internal class UserDefaultsStreamHandler: NSObject, FlutterStreamHandler {
     
     private var eventSink: FlutterEventSink?
 
-    private var lastKnownValues = [String: Any]()
+    private var lastKnownValues = ThreadSafeDictionary<String, Any>()
 
     /**
      * Called when Flutter starts listening.
