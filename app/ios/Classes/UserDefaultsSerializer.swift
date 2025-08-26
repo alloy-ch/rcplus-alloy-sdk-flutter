@@ -3,7 +3,7 @@ import Foundation
 internal class UserDefaultsSerializer {
 
     static func serializeValue(_ value: Any?) -> Any? {
-        guard let value = value else { return nil }
+        guard let value else { return nil }
         
         switch value {
         case let data as Data:
