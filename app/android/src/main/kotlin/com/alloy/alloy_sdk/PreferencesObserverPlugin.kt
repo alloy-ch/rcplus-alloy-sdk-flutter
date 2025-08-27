@@ -15,10 +15,14 @@ class PreferencesObserverPlugin: FlutterPlugin, MethodChannel.MethodCallHandler 
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
     private lateinit var sharedPreferences: SharedPreferences
+    private var streamHandler: SharedPreferencesStreamHandler? = null
+
+    companion object {
+        private const val IABTCF_PREFIX = "IABTCF"
+    }
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
-        // Use default shared preferences to access keys set by other SDKs like IABTCF_TCString
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
         // Setup Method Channel for fetching values on-demand
@@ -27,13 +31,16 @@ class PreferencesObserverPlugin: FlutterPlugin, MethodChannel.MethodCallHandler 
 
         // Setup Event Channel for streaming all updates
         eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "com.alloy.alloy_sdk/stream")
-        val streamHandler = SharedPreferencesStreamHandler(sharedPreferences)
+        streamHandler = SharedPreferencesStreamHandler(sharedPreferences)
         eventChannel.setStreamHandler(streamHandler)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel.setMethodCallHandler(null)
+        // Ensure proper cleanup
+        streamHandler?.cleanup()
         eventChannel.setStreamHandler(null)
+        streamHandler = null
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -44,7 +51,12 @@ class PreferencesObserverPlugin: FlutterPlugin, MethodChannel.MethodCallHandler 
                     result.error("INVALID_ARGUMENT", "Key argument cannot be null", null)
                     return
                 }
-                // Retrieve the value from SharedPreferences for the requested key.
+                // Only allow access to IABTCF keys for security
+                if (!key.startsWith(IABTCF_PREFIX)) {
+                    result.error("ACCESS_DENIED", "Only IABTCF keys are accessible", null)
+                    return
+                }
+                
                 val value = sharedPreferences.all[key]
                 result.success(value)
             } catch (e: Exception) {
@@ -60,33 +72,72 @@ private class SharedPreferencesStreamHandler(
     private val sharedPreferences: SharedPreferences
 ) : EventChannel.StreamHandler {
 
+    @Volatile
     private var eventSink: EventChannel.EventSink? = null
-
     private var listener: SharedPreferences.OnSharedPreferenceChangeListener? = null
-
     private val handler = Handler(Looper.getMainLooper())
+    private val lock = Any()
+
+    companion object {
+        private const val IABTCF_PREFIX = "IABTCF"
+    }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-        this.eventSink = events
-
-        // 1. Send all initial values that already exist.
-        for ((key, value) in sharedPreferences.all) {
-            handler.post { eventSink?.success(mapOf("key" to key, "value" to value)) }
+        synchronized(lock) {
+            this.eventSink = events
         }
 
-        // 2. Register a listener for any subsequent changes.
-        listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
-            val value = prefs.all[key] // This will be null if the key was removed.
-            handler.post { eventSink?.success(mapOf("key" to key, "value" to value)) }
+        try {
+            // 1. Send all initial IABTCF values only
+            val allPrefs = HashMap(sharedPreferences.all)
+            for ((key, value) in allPrefs) {
+                if (key.startsWith(IABTCF_PREFIX)) {
+                    synchronized(lock) {
+                        eventSink?.success(mapOf("key" to key, "value" to value))
+                    }
+                }
+            }
+
+            // 2. Register listener for changes
+            listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+                // Only process IABTCF keys
+                if (key?.startsWith(IABTCF_PREFIX) == true) {
+                    try {
+                        val value = prefs.all[key]
+                        synchronized(lock) {
+                            eventSink?.success(mapOf("key" to key, "value" to value))
+                        }
+                    } catch (e: Exception) {
+                        synchronized(lock) {
+                            eventSink?.error("STREAM_ERROR", "Failed to process preference change", e.toString())
+                        }
+                    }
+                }
+            }
+            sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        } catch (e: Exception) {
+            synchronized(lock) {
+                eventSink?.error("INITIALIZATION_ERROR", "Failed to initialize stream", e.toString())
+            }
         }
-        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
     }
 
     override fun onCancel(arguments: Any?) {
-        if (listener != null) {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        cleanup()
+    }
+
+    fun cleanup() {
+        synchronized(lock) {
+            try {
+                listener?.let {
+                    sharedPreferences.unregisterOnSharedPreferenceChangeListener(it)
+                }
+            } catch (e: Exception) {
+                // Log error but don't crash
+            } finally {
+                eventSink = null
+                listener = null
+            }
         }
-        eventSink = null
-        listener = null
     }
 }
