@@ -11,28 +11,40 @@ internal class UserDefaultsStreamHandler: NSObject, FlutterStreamHandler {
     }
     
     private var eventSink: FlutterEventSink?
-
     private var lastKnownValues = [String: Any]()
+    
+    // Add thread safety
+    private let accessQueue = DispatchQueue(label: "userdefaults.handler", qos: .utility)
 
     /**
      * Called when Flutter starts listening.
      */
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
-        self.eventSink = events
-        let userDefaults: UserDefaults = .standard
+        accessQueue.sync {
+            self.eventSink = events
+        }
+        
+        accessQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            let userDefaults: UserDefaults = .standard
 
-        // 1. Send all initial values that already exist, filtered to IABTCF keys only.
-        let allKeys = userDefaults.dictionaryRepresentation().keys
-        let iabtcfKeys: [String] = filterIABTCFKeys(allKeys)
-        for key in iabtcfKeys {
-            let value = userDefaults.object(forKey: key)
-            lastKnownValues[key] = value
-            if let serializedValue = UserDefaultsSerializer.serializeValue(value) {
-                events(["key": key, "value": serializedValue])
-            } else {
-                print("Skipping UserDefaults key '\(key)' - value cannot be serialized for Flutter")
+            // 1. Send all initial values that already exist, filtered to IABTCF keys only.
+            let allKeys = userDefaults.dictionaryRepresentation().keys
+            let iabtcfKeys: [String] = self.filterIABTCFKeys(allKeys)
+            for key in iabtcfKeys {
+                let value = userDefaults.object(forKey: key)
+                self.lastKnownValues[key] = value
+                if let serializedValue = UserDefaultsSerializer.serializeValue(value) {
+                    DispatchQueue.main.async {
+                        events(["key": key, "value": serializedValue])
+                    }
+                } else {
+                    print("Skipping UserDefaults key '\(key)' - value cannot be serialized for Flutter")
+                }
             }
         }
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(userDefaultsDidChange),
@@ -47,7 +59,10 @@ internal class UserDefaultsStreamHandler: NSObject, FlutterStreamHandler {
      */
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
         NotificationCenter.default.removeObserver(self)
-        eventSink = nil
+        
+        accessQueue.sync {
+            eventSink = nil
+        }
         return nil
     }
 
@@ -55,22 +70,31 @@ internal class UserDefaultsStreamHandler: NSObject, FlutterStreamHandler {
     @objc private func userDefaultsDidChange(notification: Notification) {
         guard let userDefaults = notification.object as? UserDefaults else { return }
 
-        // Check all IABTCF keys for changes, as the notification doesn't specify which one changed.
-        let allKeys: Set = Set(userDefaults.dictionaryRepresentation().keys)
-        let newIABTCFKeys: [String] = filterIABTCFKeys(allKeys)
-        let allRelevantKeys: Set<String> = Set(newIABTCFKeys).union(lastKnownValues.keys)
+        accessQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Check all IABTCF keys for changes, as the notification doesn't specify which one changed.
+            let allKeys: Set = Set(userDefaults.dictionaryRepresentation().keys)
+            let newIABTCFKeys: [String] = self.filterIABTCFKeys(allKeys)
+            let allRelevantKeys: Set<String> = Set(newIABTCFKeys).union(Set(self.lastKnownValues.keys))
 
-        for key in allRelevantKeys {
-            let newValue: Any? = userDefaults.object(forKey: key)
-            let oldValue: Any? = lastKnownValues[key]
+            for key in allRelevantKeys {
+                let newValue: Any? = userDefaults.object(forKey: key)
+                let oldValue: Any? = self.lastKnownValues[key]
 
-            if !areEqual(oldValue, newValue) {
-                // Ensure Flutter channel calls are made on the main thread
-                DispatchQueue.main.async { [weak self] in
-                    guard let self, let sink = self.eventSink else { return }
-                    sink(["key": key, "value": UserDefaultsSerializer.serializeValue(newValue)])
+                if !self.areEqual(oldValue, newValue) {
+                    self.lastKnownValues[key] = newValue
+                    
+                    // Ensure Flutter channel calls are made on the main thread
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self, 
+                              let sink = self.eventSink,
+                              let serializedValue = UserDefaultsSerializer.serializeValue(newValue) else { 
+                            return 
+                        }
+                        sink(["key": key, "value": serializedValue])
+                    }
                 }
-                lastKnownValues[key] = newValue // Update cache
             }
         }
     }
