@@ -1,6 +1,7 @@
 enum AlloyKey {
   iabTcfTcString,
   iabTcfPurposeConsents,
+  iabTcfVendorConsents,
   iabTcfCmpSdkId,
   canonicalUserid,
   canonicalUseridCreatedAt,
@@ -15,6 +16,8 @@ enum AlloyKey {
         return 'IABTCF_TCString';
       case AlloyKey.iabTcfPurposeConsents:
         return 'IABTCF_PurposeConsents';
+      case AlloyKey.iabTcfVendorConsents:
+        return 'IABTCF_VendorConsents';
       case AlloyKey.iabTcfCmpSdkId:
         return 'IABTCF_CmpSdkID';
       case AlloyKey.canonicalUserid:
