@@ -44,6 +44,8 @@ dependencies:
 
   # Advertising ID for tracking
   advertising_id: ^2.7.1
+  async: ^2.13.0
+  dio_cache_interceptor: ^4.0.3
 
 dev_dependencies:
   flutter_test:
