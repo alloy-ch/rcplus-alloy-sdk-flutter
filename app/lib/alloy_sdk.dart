@@ -7,9 +7,11 @@ import 'package:alloy_sdk/src/models/alloy_configuration.dart';
 import 'package:alloy_sdk/src/models/alloy_log_level.dart';
 import 'package:alloy_sdk/src/models/contextual_data_response.dart';
 import 'package:alloy_sdk/src/models/page_view_parameters.dart';
+import 'package:alloy_sdk/src/models/segment_data_response.dart';
 import 'package:alloy_sdk/src/models/user_ids.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:async/async.dart';
 
 export 'package:alloy_sdk/src/models/alloy_configuration.dart';
 export 'package:alloy_sdk/src/models/alloy_environment.dart';
@@ -84,7 +86,17 @@ class AlloySDK {
   }
 
   Future<ContextualDataResponse> fetchContextualData({required String url}) async {
-    return _analyticsService.fetchContextualData(url: url);
+    return await _analyticsService.fetchContextualData(url: url);
+  }
+
+  Future<SegmentDataResponse> fetchSegmentData() async {
+    try {
+      final visitorId = await visitorID;
+      return await _analyticsService.fetchSegmentData(visitorId: visitorId);
+    } catch (error) {
+      _log.severe('Failed to fetch segment data: $error', error);
+      return SegmentDataResponse(segmentIds: []);
+    }
   }
 
   Future<void> trackPageView({required PageViewParameters parameters}) async {
