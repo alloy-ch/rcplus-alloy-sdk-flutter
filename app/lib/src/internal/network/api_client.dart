@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart' as dio;
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
 import 'api_exception.dart';
 import 'package:alloy_sdk/src/models/alloy_configuration.dart';
@@ -22,7 +23,19 @@ class ApiClient {
     required AlloyConfiguration configuration,
     dio.Dio? client,
   })  : _configuration = configuration,
-        _client = client ?? dio.Dio();
+        _client = client ?? _createDioWithCache();
+
+  static dio.Dio _createDioWithCache() {
+    // Global options
+    final options = CacheOptions(
+      store: MemCacheStore(),
+      policy: CachePolicy.request,
+      priority: CachePriority.normal,
+      keyBuilder: CacheOptions.defaultCacheKeyBuilder,
+    );
+
+    return dio.Dio()..interceptors.add(DioCacheInterceptor(options: options));
+  }
 
   /// The base URL for the Alloy services endpoint, derived from the configuration.
   String get _baseUrl => 'https://sa-${_configuration.tenant}${_configuration.env.domainSuffix}.alloycdn.net';
