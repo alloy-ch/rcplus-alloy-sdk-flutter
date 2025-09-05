@@ -95,4 +95,17 @@ class ApiClient {
     };
     return await get(_baseUrl, path, queryParams: queryParams);
   }
+
+  /// Fetches segmented data for the given [visitorId] by calling the `/segmented-data` endpoint.
+  ///
+  /// Returns the decoded JSON response as a [Map<String, dynamic>].
+  /// Throws an [ApiException] if the request fails.
+  Future<Map<String, dynamic>> getSegmentedData(String id) async {
+    final baseUrl = 'https://ass-${_configuration.tenant}${_configuration.env.domainSuffix}.alloycdn.net';
+    final path = '';
+    final queryParams = {
+      'id': id,
+    };
+    return await get(baseUrl, path, queryParams: queryParams);
+  }
 } 

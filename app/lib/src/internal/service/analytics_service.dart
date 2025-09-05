@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:alloy_sdk/src/internal/service/segmented_service.dart';
 import 'package:alloy_sdk/src/models/page_view_parameters.dart';
+import 'package:alloy_sdk/src/models/segmented_data_response.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:alloy_sdk/src/models/alloy_configuration.dart';
 import 'package:alloy_sdk/src/models/user_ids.dart';
@@ -25,6 +27,7 @@ class AnalyticsService {
   late final UserIdentificationService _userIdentificationService;
   late final TrackingService _trackingService;
   late final ContextualService _contextualService;
+  late final SegmentedService _segmentedService;
 
   StreamSubscription? _subscription;
 
@@ -37,6 +40,7 @@ class AnalyticsService {
     _consentService = ConsentService(tcfConsentService: _tcfConsentService, metadataService: _metadataService);
     _userIdentificationService = UserIdentificationService(apiClient: _apiClient, storageClient: storageClient);
     _trackingService = TrackingService(storageClient: storageClient);
+    _segmentedService = SegmentedService(apiClient: _apiClient);
 
     _log.fine('Setting up combined state stream listener.');
     _subscription = CombineLatestStream.combine2(
@@ -70,7 +74,11 @@ class AnalyticsService {
   }
 
   Future<ContextualDataResponse> fetchContextualData({required String url}) async {
-    return await _contextualService.fetchContextualData(url: url);
+    return _contextualService.fetchContextualData(url: url);
+  }
+
+  Future<SegmentedDataResponse> fetchSegmentedData({ required visitorId }) async {
+    _segmentedService.fetchSegmentedData(visitorId: visitorId);
   }
 
   void dispose() {

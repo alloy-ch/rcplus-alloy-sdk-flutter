@@ -7,9 +7,11 @@ import 'package:alloy_sdk/src/models/alloy_configuration.dart';
 import 'package:alloy_sdk/src/models/alloy_log_level.dart';
 import 'package:alloy_sdk/src/models/contextual_data_response.dart';
 import 'package:alloy_sdk/src/models/page_view_parameters.dart';
+import 'package:alloy_sdk/src/models/segmented_data_response.dart';
 import 'package:alloy_sdk/src/models/user_ids.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:async/async.dart';
 
 export 'package:alloy_sdk/src/models/alloy_configuration.dart';
 export 'package:alloy_sdk/src/models/alloy_environment.dart';
@@ -83,8 +85,29 @@ class AlloySDK {
     return true;
   }
 
-  Future<ContextualDataResponse> fetchContextualData({required String url}) async {
-    return _analyticsService.fetchContextualData(url: url);
+  Future<Result<ContextualDataResponse>> fetchContextualData({required String url}) async {
+    try {
+      if (url.isEmpty) {
+        throw Exception('URL cannot be empty');
+      }
+      final data = await _analyticsService.fetchContextualData(url: url);
+      return Result.value(data);
+    } on Exception catch (e) {
+      return Result.error(e);
+    }
+  }
+
+  Future<Result<SegmentedDataResponse>> fetchSegmentedData() async {
+    try {
+      final visitorId = await visitorID;
+      if (visitorId == null || visitorId.isEmpty) {
+        throw Exception('Visitor ID is required but not available');
+      }
+      final data = await _analyticsService.fetchSegmentedData(visitorId: visitorId);
+      return Result.value(data);
+    } on Exception catch (e) {
+      return Result.error(e);
+    }
   }
 
   Future<void> trackPageView({required PageViewParameters parameters}) async {
