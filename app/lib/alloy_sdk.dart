@@ -7,7 +7,7 @@ import 'package:alloy_sdk/src/models/alloy_configuration.dart';
 import 'package:alloy_sdk/src/models/alloy_log_level.dart';
 import 'package:alloy_sdk/src/models/contextual_data_response.dart';
 import 'package:alloy_sdk/src/models/page_view_parameters.dart';
-import 'package:alloy_sdk/src/models/segmented_data_response.dart';
+import 'package:alloy_sdk/src/models/segment_data_response.dart';
 import 'package:alloy_sdk/src/models/user_ids.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
@@ -97,13 +97,9 @@ class AlloySDK {
     }
   }
 
-  Future<Result<SegmentedDataResponse>> fetchSegmentedData() async {
+  Future<Result<SegmentDataResponse>> fetchSegmentData() async {
     try {
-      final visitorId = await visitorID;
-      if (visitorId == null || visitorId.isEmpty) {
-        throw Exception('Visitor ID is required but not available');
-      }
-      final data = await _analyticsService.fetchSegmentedData(visitorId: visitorId);
+      final data = await _analyticsService.fetchSegmentedData();
       return Result.value(data);
     } on Exception catch (e) {
       return Result.error(e);

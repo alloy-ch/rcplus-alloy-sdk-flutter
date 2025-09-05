@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'package:alloy_sdk/src/internal/service/segmented_service.dart';
 import 'package:alloy_sdk/src/models/page_view_parameters.dart';
-import 'package:alloy_sdk/src/models/segmented_data_response.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:alloy_sdk/src/models/alloy_configuration.dart';
 import 'package:alloy_sdk/src/models/user_ids.dart';
@@ -17,6 +15,8 @@ import 'consent_state.dart';
 import 'identification_state.dart';
 import 'contextual_service.dart';
 import 'package:alloy_sdk/src/models/contextual_data_response.dart';
+import 'package:alloy_sdk/src/internal/service/segment_service.dart';
+import 'package:alloy_sdk/src/models/segment_data_response.dart';
 
 class AnalyticsService {
   final _log = Logger('AnalyticsService');
@@ -27,7 +27,7 @@ class AnalyticsService {
   late final UserIdentificationService _userIdentificationService;
   late final TrackingService _trackingService;
   late final ContextualService _contextualService;
-  late final SegmentedService _segmentedService;
+  late final SegmentService _segmentService;
 
   StreamSubscription? _subscription;
 
@@ -40,7 +40,7 @@ class AnalyticsService {
     _consentService = ConsentService(tcfConsentService: _tcfConsentService, metadataService: _metadataService);
     _userIdentificationService = UserIdentificationService(apiClient: _apiClient, storageClient: storageClient);
     _trackingService = TrackingService(storageClient: storageClient);
-    _segmentedService = SegmentedService(apiClient: _apiClient);
+    _segmentService = SegmentService(apiClient: _apiClient, consentService: _consentService);
 
     _log.fine('Setting up combined state stream listener.');
     _subscription = CombineLatestStream.combine2(
@@ -74,11 +74,11 @@ class AnalyticsService {
   }
 
   Future<ContextualDataResponse> fetchContextualData({required String url}) async {
-    return _contextualService.fetchContextualData(url: url);
+    return await _contextualService.fetchContextualData(url: url);
   }
 
-  Future<SegmentedDataResponse> fetchSegmentedData({ required visitorId }) async {
-    _segmentedService.fetchSegmentedData(visitorId: visitorId);
+  Future<SegmentDataResponse> fetchSegmentedData({String? visitorId}) async {
+    return await _segmentService.fetchSegmentedData(visitorId: visitorId);
   }
 
   void dispose() {
