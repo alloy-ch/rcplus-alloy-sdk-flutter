@@ -85,25 +85,13 @@ class AlloySDK {
     return true;
   }
 
-  Future<Result<ContextualDataResponse>> fetchContextualData({required String url}) async {
-    try {
-      if (url.isEmpty) {
-        throw Exception('URL cannot be empty');
-      }
-      final data = await _analyticsService.fetchContextualData(url: url);
-      return Result.value(data);
-    } on Exception catch (e) {
-      return Result.error(e);
-    }
+  Future<ContextualDataResponse> fetchContextualData({required String url}) async {
+    return await _analyticsService.fetchContextualData(url: url);
   }
 
-  Future<Result<SegmentDataResponse>> fetchSegmentData() async {
-    try {
-      final data = await _analyticsService.fetchSegmentedData();
-      return Result.value(data);
-    } on Exception catch (e) {
-      return Result.error(e);
-    }
+  Future<SegmentDataResponse> fetchSegmentData() async {
+    final visitorId = await visitorID;
+    return await _analyticsService.fetchSegmentedData(visitorId: visitorId);
   }
 
   Future<void> trackPageView({required PageViewParameters parameters}) async {
