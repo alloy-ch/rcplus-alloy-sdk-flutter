@@ -16,7 +16,7 @@ ContextualDataResponse _$ContextualDataResponseFromJson(
           ?.map((e) => e as String)
           .toList(),
       canonicalID: json['canonical_id'] as String?,
-      attribution: json['attribution'] as Map<String, dynamic>?,
+      attribution: json['attribution'] as String?,
       isBrandsafe: json['is_brandsafe'] as bool?,
     );
 
