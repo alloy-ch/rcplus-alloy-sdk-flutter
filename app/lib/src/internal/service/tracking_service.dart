@@ -153,8 +153,17 @@ class TrackingService {
     if (userIDs?.ssoUserID != null) {
       extendedAttributesData['sso_userid'] = userIDs!.ssoUserID;
     }
-    if (userIDs?.externalIDs != null && userIDs!.externalIDs!.isNotEmpty) {
-      extendedAttributesData['user_id_external'] = jsonEncode(userIDs.externalIDs);
+    final externalIds = userIDs?.externalIDs;
+    if (externalIds != null && externalIds.isNotEmpty) {
+      final adsId = userIDs?.advertisingID;
+      if (adsId != null && adsId.isNotEmpty) {
+          externalIds.putIfAbsent("advertiserUserId", () => adsId);
+      }
+      try {
+        extendedAttributesData['user_id_external'] = jsonEncode(externalIds);
+      } catch (e) {
+        _log.warning('Error encoding external IDs to JSON: $e');
+      }
     }
 
     contexts.add(SelfDescribing(
