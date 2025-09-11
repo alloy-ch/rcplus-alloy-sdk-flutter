@@ -157,7 +157,7 @@ class TrackingService {
     if (externalIds != null && externalIds.isNotEmpty) {
       final adsId = userIDs?.advertisingID;
       if (adsId != null && adsId.isNotEmpty) {
-          externalIds.putIfAbsent("advertiserUserId", () => adsId);
+          externalIds.putIfAbsent("advertiser_userid", () => adsId);
       }
       try {
         extendedAttributesData['user_id_external'] = jsonEncode(externalIds);
