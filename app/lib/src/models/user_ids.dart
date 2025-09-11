@@ -52,7 +52,7 @@ class UserIDs {
       combined['sso_userid'] = ssoUserID;
     }
     if (advertisingID != null) {
-      combined['advertiserUserId'] = advertisingID;
+      combined['advertiser_userid'] = advertisingID;
     }
     if (externalIDs != null) {
       externalIDs!.forEach((key, value) {
