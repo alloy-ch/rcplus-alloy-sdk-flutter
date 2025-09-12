@@ -72,7 +72,7 @@ class ApiClient {
       final queryParams = {
         'canonical_id': canonicalID,
       };
-      final combinedMap = userIDs.toCombinedMap();
+      final combinedMap = await userIDs.toCombinedMap();
       if (combinedMap.isNotEmpty) {
         queryParams['external_ids'] = jsonEncode(combinedMap);
       }

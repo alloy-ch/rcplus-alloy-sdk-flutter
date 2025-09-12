@@ -505,10 +505,11 @@ class _QAHomePageState extends State<QAHomePage> with TickerProviderStateMixin {
       });
       
       if (mounted) {
-        _showAlert(
-          'Initialize Result',
-          success ? 'SDK initialized successfully!' : 'SDK initialization failed',
-        );
+        String message = success 
+            ? 'SDK initialized successfully!\n\nThe SDK automatically collected advertising ID if tracking permissions are granted. Check debug logs for details.' 
+            : 'SDK initialization failed';
+        
+        _showAlert('Initialize Result', message);
       }
     } catch (e) {
       setState(() {

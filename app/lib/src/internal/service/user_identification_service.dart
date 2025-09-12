@@ -73,7 +73,13 @@ class UserIdentificationService {
       _stateController.add(IdentificationState.ready);
     } finally {
       _log.fine('Storing user IDs and setting state to ready.');
-      await _storageClient.setString(AlloyKey.storedUserIdsJson, json.encode(userIDs.toJson()));
+      // Use create method to ensure advertising ID is resolved when saving
+      final userIDsToStore = await UserIDs.create(
+        ssoUserID: userIDs.ssoUserID,
+        advertisingID: userIDs.advertisingID,
+        externalIDs: userIDs.externalIDs,
+      );
+      await _storageClient.setString(AlloyKey.storedUserIdsJson, json.encode(userIDsToStore.toJson()));
     }
   }
 

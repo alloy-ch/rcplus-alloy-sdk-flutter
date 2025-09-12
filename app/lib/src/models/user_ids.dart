@@ -23,19 +23,24 @@ class UserIDs {
     this.externalIDs,
   });
 
+  static Future<String?> getAdvertisingID() async {
+    try {
+      final adId = await AdvertisingId.id(true);
+      // Convert empty string to null for proper JSON serialization
+      return (adId?.isEmpty ?? true) ? null : adId;
+    } catch (e) {
+      return null;
+    }
+  }
+
   static Future<UserIDs> create({
     String? ssoUserID,
     required String? advertisingID,
     required Map<String, String>? externalIDs,
   }) async {
     String? finalAdvertisingID = advertisingID;
-
-    if (advertisingID == null) {
-      try {
-        finalAdvertisingID = await AdvertisingId.id(true);
-      } catch (e) {
-        finalAdvertisingID = null;
-      }
+    if (finalAdvertisingID?.isEmpty ?? true) {
+      finalAdvertisingID = await getAdvertisingID();
     }
     return UserIDs(
       ssoUserID: ssoUserID,
@@ -48,20 +53,26 @@ class UserIDs {
 
   Map<String, dynamic> toJson() => _$UserIDsToJson(this);
 
-  Map<String, dynamic> toCombinedMap() {
+  Future<Map<String, dynamic>> toCombinedMap() async {
+    // reconstruct UserIDs to ensure advertisingID is populated
+    final userIDs = await UserIDs.create(
+      ssoUserID: ssoUserID,
+      advertisingID: advertisingID,
+      externalIDs: externalIDs,
+    );
     final Map<String, dynamic> combined = <String, dynamic>{};
-    if (ssoUserID != null) {
-      combined['sso_userid'] = ssoUserID;
+    if (userIDs.ssoUserID != null) {
+      combined['sso_userid'] = userIDs.ssoUserID;
     }
-    if (advertisingID != null) {
+    if (userIDs.advertisingID != null) {
       if (Platform.isAndroid) {
-        combined['aaid'] = advertisingID;
+        combined['aaid'] = userIDs.advertisingID;
       } else if (Platform.isIOS) {
-        combined['idfa'] = advertisingID;
+        combined['idfa'] = userIDs.advertisingID;
       }
     }
-    if (externalIDs != null) {
-      externalIDs!.forEach((key, value) {
+    if (userIDs.externalIDs != null) {
+      userIDs.externalIDs!.forEach((key, value) {
         combined[key] = value;
       });
     }
