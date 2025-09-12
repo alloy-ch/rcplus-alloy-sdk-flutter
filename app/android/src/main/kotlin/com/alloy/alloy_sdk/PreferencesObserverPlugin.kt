@@ -2,8 +2,6 @@ package com.alloy.alloy_sdk
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Handler
-import android.os.Looper
 import androidx.preference.PreferenceManager
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
@@ -15,6 +13,20 @@ class PreferencesObserverPlugin: FlutterPlugin, MethodChannel.MethodCallHandler 
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
     private lateinit var sharedPreferences: SharedPreferences
+
+    companion object {
+
+        const val KEY_PREFIX: String = "IABTCF"
+        fun serializeValue(value: Any?): Any? {
+            return when (value) {
+                null -> null
+                is Float -> value.toDouble()
+                is Set<*> -> value.filterIsInstance<String>()
+                is Boolean, is Int, is Long, is Double, is String -> value
+                else -> value.toString()
+            }
+        }
+    }
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
@@ -45,7 +57,8 @@ class PreferencesObserverPlugin: FlutterPlugin, MethodChannel.MethodCallHandler 
                     return
                 }
                 // Retrieve the value from SharedPreferences for the requested key.
-                val value = sharedPreferences.all[key]
+                val rawValue = sharedPreferences.all[key]
+                val value = serializeValue(rawValue)
                 result.success(value)
             } catch (e: Exception) {
                 result.error("NATIVE_ERROR", "Failed to retrieve value from SharedPreferences", e.toString())
@@ -53,40 +66,5 @@ class PreferencesObserverPlugin: FlutterPlugin, MethodChannel.MethodCallHandler 
         } else {
             result.notImplemented()
         }
-    }
-}
-
-private class SharedPreferencesStreamHandler(
-    private val sharedPreferences: SharedPreferences
-) : EventChannel.StreamHandler {
-
-    private var eventSink: EventChannel.EventSink? = null
-
-    private var listener: SharedPreferences.OnSharedPreferenceChangeListener? = null
-
-    private val handler = Handler(Looper.getMainLooper())
-
-    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-        this.eventSink = events
-
-        // 1. Send all initial values that already exist.
-        for ((key, value) in sharedPreferences.all) {
-            handler.post { eventSink?.success(mapOf("key" to key, "value" to value)) }
-        }
-
-        // 2. Register a listener for any subsequent changes.
-        listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
-            val value = prefs.all[key] // This will be null if the key was removed.
-            handler.post { eventSink?.success(mapOf("key" to key, "value" to value)) }
-        }
-        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
-    }
-
-    override fun onCancel(arguments: Any?) {
-        if (listener != null) {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
-        }
-        eventSink = null
-        listener = null
     }
 }
