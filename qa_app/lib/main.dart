@@ -1,12 +1,26 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alloy_sdk/alloy_sdk.dart';
 import 'package:uuid/uuid.dart';
 import 'cmp_mock_service.dart';
 import 'tracking_permission_service.dart';
 
+// Global UserIDs instance
+late final UserIDs userIDs;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize user IDs globally
+  const uuid = Uuid();
+  userIDs = UserIDs(
+    ssoUserID: uuid.v4(),
+    externalIDs: {
+      'testID': uuid.v4(),
+    },
+    advertisingID: uuid.v4(),
+  );
   
   // Initialize Alloy SDK with development configuration
   await AlloySDK.instance.start(
@@ -53,6 +67,9 @@ class _QAHomePageState extends State<QAHomePage> with TickerProviderStateMixin {
   String _trackingPermissionStatus = 'Not requested';
   String? _advertisingId;
   bool _trackingPermissionGranted = false;
+  
+  // Consent change subscription
+  StreamSubscription<dynamic>? _consentSubscription;
 
   @override
   void initState() {
@@ -60,11 +77,13 @@ class _QAHomePageState extends State<QAHomePage> with TickerProviderStateMixin {
     _tabController = TabController(length: 2, vsync: this);
     _refreshPreferences();
     _checkTrackingPermissionStatus();
+    _setupConsentListener();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _consentSubscription?.cancel();
     super.dispose();
   }
 
@@ -414,6 +433,33 @@ class _QAHomePageState extends State<QAHomePage> with TickerProviderStateMixin {
     }
   }
 
+  void _setupConsentListener() {
+    // Listen to consent state changes (much better than raw TCString)
+    _consentSubscription = AlloySDK.instance.consentStateStream.listen((consentState) async {      
+      // Re-initialize SDK when consent is granted
+      if (consentState == ConsentState.ready) {
+        try {
+          final success = await AlloySDK.instance.initialize(userIDs: userIDs);
+          setState(() {
+            _isSDKInitialized = success;
+          });
+          
+          // Refresh preferences to show updated values
+          _refreshPreferences();
+        } catch (e) {
+          setState(() {
+            _isSDKInitialized = false;
+          });
+        }
+      } else {
+        // Consent was denied or not initialized
+        setState(() {
+          _isSDKInitialized = false;
+        });
+      }
+    });
+  }
+
   // Tracking Permission Methods
   void _toggleTrackingPermission() async {
     try {
@@ -490,14 +536,7 @@ class _QAHomePageState extends State<QAHomePage> with TickerProviderStateMixin {
   // SDK Action Methods
   void _initializeSDK() async {
     try {
-      const uuid = Uuid();
-      final userIDs = UserIDs(
-        ssoUserID: uuid.v4(),
-        externalIDs: {
-          'testID': uuid.v4(),
-        },
-      );
-      
+
       final success = await AlloySDK.instance.initialize(userIDs: userIDs);
       
       setState(() {
