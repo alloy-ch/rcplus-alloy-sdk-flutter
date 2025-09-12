@@ -15,7 +15,7 @@ class ContextualDataResponse {
   final String? canonicalID;
 
   @JsonKey(name: 'attribution')
-  final Map<String, dynamic>? attribution;
+  final String? attribution;
 
   @JsonKey(name: 'is_brandsafe')
   final bool? isBrandsafe;
