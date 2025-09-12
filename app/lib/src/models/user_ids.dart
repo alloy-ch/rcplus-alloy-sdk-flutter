@@ -14,45 +14,39 @@ class UserIDs {
   @JsonKey(name: 'external_ids')
   final Map<String, String>? externalIDs;
 
+  /// @deprecated This field is deprecated and no longer used for advertising ID collection.
+  /// Use [getAdvertisingID()] method instead for dynamic advertising ID resolution.
+  /// This field is kept for backward compatibility only.
   @JsonKey(name: 'advertising_id')
+  @Deprecated('Use getAdvertisingID() method instead. This field is kept for backward compatibility only.')
   final String? advertisingID;
 
   UserIDs({
     this.ssoUserID,
-    this.advertisingID,
     this.externalIDs,
+    @Deprecated('The advertisingID resolution is handled internally') this.advertisingID,
   });
 
-  static Future<UserIDs> create({
-    String? ssoUserID,
-    required String? advertisingID,
-    required Map<String, String>? externalIDs,
-  }) async {
-    String? finalAdvertisingID = advertisingID;
-
-    if (advertisingID == null) {
-      try {
-        finalAdvertisingID = await AdvertisingId.id(true);
-      } catch (e) {
-        finalAdvertisingID = null;
-      }
+  static Future<String?> getAdvertisingID() async {
+    try {
+      final adId = await AdvertisingId.id(true);
+      return (adId?.isEmpty ?? true) ? null : adId;
+    } catch (e) {
+      return null;
     }
-    return UserIDs(
-      ssoUserID: ssoUserID,
-      advertisingID: finalAdvertisingID,
-      externalIDs: externalIDs,
-    );
   }
+
 
   factory UserIDs.fromJson(Map<String, dynamic> json) => _$UserIDsFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserIDsToJson(this);
 
-  Map<String, dynamic> toCombinedMap() {
+  Future<Map<String, dynamic>> toCombinedMap() async {
     final Map<String, dynamic> combined = <String, dynamic>{};
     if (ssoUserID != null) {
       combined['sso_userid'] = ssoUserID;
     }
+    final advertisingID = await getAdvertisingID();
     if (advertisingID != null) {
       if (Platform.isAndroid) {
         combined['aaid'] = advertisingID;

@@ -20,6 +20,7 @@ export 'package:alloy_sdk/src/models/alloy_log_level.dart';
 export 'package:alloy_sdk/src/models/contextual_data_response.dart';
 export 'package:alloy_sdk/src/models/page_view_parameters.dart';
 export 'package:alloy_sdk/src/models/user_ids.dart';
+export 'package:alloy_sdk/src/internal/service/consent_state.dart';
 
 class AlloySDK {
 
@@ -40,6 +41,8 @@ class AlloySDK {
   Future<String?> get visitorID async {
     return await _storageClient.getString(AlloyKey.canonicalUserid, defaultValue: '').first;
   }
+
+  Stream<ConsentState> get consentStateStream => _analyticsService.consentStateStream;
 
   void _setupLogger() {
     Logger.root.level = Level.ALL;
