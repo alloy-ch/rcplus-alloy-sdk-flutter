@@ -1,0 +1,131 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Additional build artifacts and platform files
+/android/local.properties
+/android/*.iml
+/android/gradlew
+/android/gradlew.bat
+/android/gradle/
+
+# iOS build artifacts and dependencies  
+/ios/Pods/
+/ios/Podfile.lock
+/ios/.symlinks/
+/ios/Flutter/flutter_export_environment.sh
+/ios/Flutter/ephemeral/
+
+# macOS build artifacts
+/macos/Flutter/ephemeral/
+/macos/Pods/
+/macos/Podfile.lock
+
+# Additional generated/cache files
+*.lock
+*.fingerprint
+devtools_options.yaml
+.flutter-plugins
+.metadata
+
+# Exclude unnecessary platform directories
+/macos/
+/linux/
+/windows/
+/web/
+
+# Exclude iOS Pods and build artifacts
+/ios/Pods/
+/ios/Flutter/ephemeral/
+/ios/.symlinks/
+/ios/Runner.xcworkspace/xcuserdata/
+/ios/Runner.xcodeproj/xcuserdata/
+
+# Exclude Android build artifacts
+/android/.gradle/
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+/android/gradlew
+/android/gradlew.bat
+/android/local.properties
+/android/*.iml
+/android/app/*.iml
+
+# Build outputs
+/build/
+
+
+
+
+# QA App - exclude unnecessary directories and files
+/build/
+/macos/
+/linux/
+/windows/
+/web/
+/ios/Pods/
+/ios/Flutter/ephemeral/
+/ios/Runner.xcworkspace/
+/ios/Runner.xcodeproj/
+/ios/RunnerTests/
+/ios/Runner/Assets.xcassets/
+/ios/Runner/Base.lproj/
+/android/.gradle/
+/android/gradlew*
+/android/local.properties
+/android/gradle/
+/android/app/src/debug/
+/android/app/src/profile/
+/android/app/src/main/res/
+/android/app/build.gradle.kts
+/android/build.gradle.kts
+/android/gradle.properties
+/android/settings.gradle.kts
+/android/*.iml
+/.dart_tool/
+/devtools_options.yaml
+/test/
+/pubspec.lock
