@@ -14,65 +14,48 @@ class UserIDs {
   @JsonKey(name: 'external_ids')
   final Map<String, String>? externalIDs;
 
+  /// @deprecated This field is deprecated and no longer used for advertising ID collection.
+  /// Use [getAdvertisingID()] method instead for dynamic advertising ID resolution.
+  /// This field is kept for backward compatibility only.
   @JsonKey(name: 'advertising_id')
+  @Deprecated('Use getAdvertisingID() method instead. This field is kept for backward compatibility only.')
   final String? advertisingID;
 
   UserIDs({
     this.ssoUserID,
-    this.advertisingID,
     this.externalIDs,
+    @Deprecated('The advertisingID resolution is handled internally') this.advertisingID,
   });
 
   static Future<String?> getAdvertisingID() async {
     try {
       final adId = await AdvertisingId.id(true);
-      // Convert empty string to null for proper JSON serialization
       return (adId?.isEmpty ?? true) ? null : adId;
     } catch (e) {
       return null;
     }
   }
 
-  static Future<UserIDs> create({
-    String? ssoUserID,
-    required String? advertisingID,
-    required Map<String, String>? externalIDs,
-  }) async {
-    String? finalAdvertisingID = advertisingID;
-    if (finalAdvertisingID?.isEmpty ?? true) {
-      finalAdvertisingID = await getAdvertisingID();
-    }
-    return UserIDs(
-      ssoUserID: ssoUserID,
-      advertisingID: finalAdvertisingID,
-      externalIDs: externalIDs,
-    );
-  }
 
   factory UserIDs.fromJson(Map<String, dynamic> json) => _$UserIDsFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserIDsToJson(this);
 
   Future<Map<String, dynamic>> toCombinedMap() async {
-    // reconstruct UserIDs to ensure advertisingID is populated
-    final userIDs = await UserIDs.create(
-      ssoUserID: ssoUserID,
-      advertisingID: advertisingID,
-      externalIDs: externalIDs,
-    );
     final Map<String, dynamic> combined = <String, dynamic>{};
-    if (userIDs.ssoUserID != null) {
-      combined['sso_userid'] = userIDs.ssoUserID;
+    if (ssoUserID != null) {
+      combined['sso_userid'] = ssoUserID;
     }
-    if (userIDs.advertisingID != null) {
+    final advertisingID = await getAdvertisingID();
+    if (advertisingID != null) {
       if (Platform.isAndroid) {
-        combined['aaid'] = userIDs.advertisingID;
+        combined['aaid'] = advertisingID;
       } else if (Platform.isIOS) {
-        combined['idfa'] = userIDs.advertisingID;
+        combined['idfa'] = advertisingID;
       }
     }
-    if (userIDs.externalIDs != null) {
-      userIDs.externalIDs!.forEach((key, value) {
+    if (externalIDs != null) {
+      externalIDs!.forEach((key, value) {
         combined[key] = value;
       });
     }

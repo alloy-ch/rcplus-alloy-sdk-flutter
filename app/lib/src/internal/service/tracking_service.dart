@@ -155,7 +155,7 @@ class TrackingService {
       extendedAttributesData['sso_userid'] = userIDs!.ssoUserID;
     }
     Map<String, String> externalIds = userIDs?.externalIDs ?? {};
-    final adsId = userIDs?.advertisingID ?? await UserIDs.getAdvertisingID();
+    final adsId = await UserIDs.getAdvertisingID();
     if (adsId != null && adsId.isNotEmpty) {
       if (Platform.isAndroid) {
         externalIds.putIfAbsent("aaid", () => adsId);
@@ -173,6 +173,7 @@ class TrackingService {
       schema: 'iglu:com.alloy/extended_attributes/jsonschema/1-0-0',
       data: extendedAttributesData,
     ));
+    _log.info('Extended Attributes Data: $extendedAttributesData');
 
     _log.info('Tracking page view: ${parameters.pageURL}');
     await _tracker?.track(
