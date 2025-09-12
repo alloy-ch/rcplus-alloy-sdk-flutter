@@ -44,4 +44,15 @@ class StorageClient {
   Future<void> remove(AlloyKey key) async {
     await _prefs.remove(key.value);
   }
+
+  /// Clear all user-related data from storage when consent is revoked
+  Future<void> clearUserData() async {
+    // Clear user identification data (using only available keys)
+    await _prefs.remove(AlloyKey.canonicalUserid.value);
+    await _prefs.remove(AlloyKey.canonicalUseridCreatedAt.value);
+    await _prefs.remove(AlloyKey.storedUserIdsJson.value);
+    await _prefs.remove(AlloyKey.domainUserid.value);
+    await _prefs.remove(AlloyKey.domainUseridCreatedAt.value);
+    await _prefs.remove(AlloyKey.lastApiErrorOccurred.value);
+  }
 }

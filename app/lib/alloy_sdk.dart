@@ -9,6 +9,7 @@ import 'package:alloy_sdk/src/models/contextual_data_response.dart';
 import 'package:alloy_sdk/src/models/page_view_parameters.dart';
 import 'package:alloy_sdk/src/models/segment_data_response.dart';
 import 'package:alloy_sdk/src/models/user_ids.dart';
+import 'package:alloy_sdk/src/internal/service/consent_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:async/async.dart';
@@ -81,6 +82,14 @@ class AlloySDK {
   }
 
   Future<bool> initialize({required UserIDs userIDs}) async {
+    // Check if consent is granted before initializing
+    final consentState = await _analyticsService.consentStateStream.first;
+    if (consentState != ConsentState.ready) {
+      _log.warning('Cannot initialize SDK: consent not granted (state: $consentState)');
+      // throw StateError('Consent must be granted to initialize the SDK');
+      return false;
+    }
+    
     await _analyticsService.resolveUser(userIDs: userIDs);
     return true;
   }
@@ -92,6 +101,7 @@ class AlloySDK {
   Future<SegmentDataResponse> fetchSegmentData() async {
     try {
       final visitorId = await visitorID;
+      // If visitorID is null/empty (consent revoked), the service will handle it appropriately
       return await _analyticsService.fetchSegmentData(visitorId: visitorId);
     } catch (error) {
       _log.severe('Failed to fetch segment data: $error', error);

@@ -16,24 +16,35 @@ class SegmentService {
     : _apiClient = apiClient, _consentService = consentService;
 
   Future<SegmentDataResponse> fetchSegmentData({String? visitorId}) async {
-    _log.info('Checking consent state before fetching segmented data for visitor');
+    _log.info('Starting segment data fetch for visitorId: ${visitorId ?? "null"}');
     
     // Check current consent state first
-    final currentConsentState = await _consentService.stateStream.last;
+    final currentConsentState = await _consentService.stateStream.first;
+    _log.info('Current consent state: $currentConsentState');
     
     if (currentConsentState != ConsentState.ready) {
-      _log.warning('Consent not ready (current state: $currentConsentState). Cannot fetch segmented data.');
+      _log.warning('Segment data fetch blocked - consent not ready (state: $currentConsentState)');
       throw StateError('Consent is not ready. Current state: $currentConsentState');
     }
     
+    _log.info('Consent check passed - proceeding with segment data fetch');
+    
     // Validate visitorId after consent check
     if (visitorId == null || visitorId.trim().isEmpty) {
-      _log.warning('Invalid visitorId provided: $visitorId');
+      _log.warning('Segment data fetch failed - invalid visitorId: ${visitorId ?? "null"}');
       throw ArgumentError('visitorId cannot be null or empty');
     }
     
-    _log.info('Consent is ready and visitorId is valid. Fetching segmented data for visitor');
-    final response = await _apiClient.getSegmentData(visitorId);
-    return SegmentDataResponse.fromJson(response);
+    _log.info('Fetching segment data from API for visitorId: $visitorId');
+    try {
+      final response = await _apiClient.getSegmentData(visitorId);
+      _log.info('Segment data API call successful');
+      final segmentResponse = SegmentDataResponse.fromJson(response);
+      _log.fine('Parsed segment response: ${segmentResponse.segmentIds.length} segments');
+      return segmentResponse;
+    } catch (e) {
+      _log.severe('Segment data API call failed: $e');
+      rethrow;
+    }
   }
 }

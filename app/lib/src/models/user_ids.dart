@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:advertising_id/advertising_id.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -52,7 +54,11 @@ class UserIDs {
       combined['sso_userid'] = ssoUserID;
     }
     if (advertisingID != null) {
-      combined['advertiser_userid'] = advertisingID;
+      if (Platform.isAndroid) {
+        combined['aaid'] = advertisingID;
+      } else if (Platform.isIOS) {
+        combined['idfa'] = advertisingID;
+      }
     }
     if (externalIDs != null) {
       externalIDs!.forEach((key, value) {

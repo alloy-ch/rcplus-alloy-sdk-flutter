@@ -30,6 +30,7 @@ class AnalyticsService {
   late final SegmentService _segmentService;
 
   StreamSubscription? _subscription;
+  bool _isProcessingConsentDenial = false;
 
   Future<void> init({required AlloyConfiguration configuration, required StorageClient storageClient}) async {
     _log.info('Initializing...');
@@ -50,12 +51,17 @@ class AnalyticsService {
     ).listen((states) {
       final (consentState, idState) = states;
       _log.fine('State change: Consent -> $consentState, Identification -> $idState');
+      
       if (consentState == ConsentState.ready && idState == IdentificationState.ready) {
         _log.info('Consent and Identification are ready. Starting tracking service.');
         _trackingService.start(configuration: configuration);
-      } else if (consentState == ConsentState.denied) {
-        _log.info('Consent denied. Stopping tracking service.');
+        _isProcessingConsentDenial = false; // Reset flag when consent is ready
+      } else if (consentState == ConsentState.denied && !_isProcessingConsentDenial) {
+        _log.info('Consent denied. Stopping tracking service and clearing data.');
+        _isProcessingConsentDenial = true; // Set flag to prevent recursive calls
         _trackingService.stop();
+        storageClient.clearUserData();
+        _userIdentificationService.resetState();
       }
     });
   }
@@ -80,6 +86,9 @@ class AnalyticsService {
   Future<SegmentDataResponse> fetchSegmentData({String? visitorId}) async {
     return await _segmentService.fetchSegmentData(visitorId: visitorId);
   }
+
+  /// Access to the current consent state stream
+  Stream<ConsentState> get consentStateStream => _consentService.stateStream;
 
   void dispose() {
     _log.info('Disposing...');
