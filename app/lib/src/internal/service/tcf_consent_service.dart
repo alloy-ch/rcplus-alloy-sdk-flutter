@@ -17,6 +17,7 @@ class TCFConsentService {
   static const int _vendorIdToCheck = 1436;
 
   TCFConsentState? _lastEmittedState;
+  bool _hasBeenInitialized = false;
 
   TCFConsentService()  {
     _log.info('Initializing...');
@@ -36,9 +37,17 @@ class TCFConsentService {
     final tcString = await PreferencesObserver.getValue(AlloyKey.iabTcfTcString.value) as String?;
 
     if (tcString?.isEmpty ?? true) {
-      _emitState(TCFConsentState.notInitialized);
+      // If we had a valid TC string before and now it's empty, this means consent was explicitly denied
+      if (_hasBeenInitialized) {
+        _emitState(TCFConsentState.denied);
+      } else {
+        _emitState(TCFConsentState.notInitialized);
+      }
       return;
     }
+
+    // Mark as initialized since we have a valid TC string
+    _hasBeenInitialized = true;
 
     final bool purposeGranted = await _isPurposeOneGranted();
     final bool vendorGranted = await _hasVendorConsent(_vendorIdToCheck);

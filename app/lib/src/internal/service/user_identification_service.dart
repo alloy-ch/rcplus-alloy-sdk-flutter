@@ -35,6 +35,12 @@ class UserIdentificationService {
 
   Stream<IdentificationState> get stateStream => _stateController.stream;
 
+  /// Reset the identification state to notInitialized (called when consent is denied)
+  void resetState() {
+    _log.info('Resetting identification state to notInitialized');
+    _stateController.add(IdentificationState.notInitialized);
+  }
+
   Future<void> resolve({required UserIDs userIDs}) async {
     _log.info('Starting resolution for $userIDs');
     if (await _shouldSkipResolution(userIDs)) {
@@ -58,15 +64,16 @@ class UserIdentificationService {
       await _storageClient.setString(AlloyKey.canonicalUserid, resolvedCanonicalId);
       await _storageClient.setInt(AlloyKey.canonicalUseridCreatedAt, createdAt);
       await _storageClient.setBool(AlloyKey.lastApiErrorOccurred, false);
+      _stateController.add(IdentificationState.ready);
 
     } on ApiException catch (e) {
       _log.severe('API error during canonical ID resolution: ${e.message}');
       await _storageClient.setBool(AlloyKey.lastApiErrorOccurred, true);
       await _storageClient.setString(AlloyKey.canonicalUserid, domainUserID);
+      _stateController.add(IdentificationState.ready);
     } finally {
       _log.fine('Storing user IDs and setting state to ready.');
       await _storageClient.setString(AlloyKey.storedUserIdsJson, json.encode(userIDs.toJson()));
-      _stateController.add(IdentificationState.ready);
     }
   }
 

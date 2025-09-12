@@ -49,7 +49,7 @@ class PreferencesObserver {
   static Future<dynamic> getValue(String key) async {
     try {
       return await _methodChannel.invokeMethod('getValue', {'key': key});
-    } on PlatformException catch (e) {
+    } on PlatformException {
       return null;
     }
   }

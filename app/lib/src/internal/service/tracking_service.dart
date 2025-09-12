@@ -157,7 +157,11 @@ class TrackingService {
     if (externalIds != null && externalIds.isNotEmpty) {
       final adsId = userIDs?.advertisingID;
       if (adsId != null && adsId.isNotEmpty) {
-          externalIds.putIfAbsent("advertiser_userid", () => adsId);
+        if (Platform.isAndroid) {
+          externalIds.putIfAbsent("aaid", () => adsId);
+        } else if (Platform.isIOS) {
+          externalIds.putIfAbsent("idfa", () => adsId);
+        }
       }
       try {
         extendedAttributesData['user_id_external'] = jsonEncode(externalIds);

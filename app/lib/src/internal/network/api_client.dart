@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart' as dio;
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
 import 'api_exception.dart';
 import 'package:alloy_sdk/src/models/alloy_configuration.dart';
@@ -22,7 +23,19 @@ class ApiClient {
     required AlloyConfiguration configuration,
     dio.Dio? client,
   })  : _configuration = configuration,
-        _client = client ?? dio.Dio();
+        _client = client ?? _createDioWithCache();
+
+  static dio.Dio _createDioWithCache() {
+    // Global options
+    final options = CacheOptions(
+      store: MemCacheStore(),
+      policy: CachePolicy.request,
+      priority: CachePriority.normal,
+      keyBuilder: CacheOptions.defaultCacheKeyBuilder,
+    );
+
+    return dio.Dio()..interceptors.add(DioCacheInterceptor(options: options));
+  }
 
   /// The base URL for the Alloy services endpoint, derived from the configuration.
   String get _baseUrl => 'https://sa-${_configuration.tenant}${_configuration.env.domainSuffix}.alloycdn.net';
@@ -94,5 +107,18 @@ class ApiClient {
       'cmp_id': cmpId,
     };
     return await get(_baseUrl, path, queryParams: queryParams);
+  }
+
+  /// Fetches segment data for the given [visitorId] by calling the endpoint.
+  ///
+  /// Returns the decoded JSON response as a [Map<String, dynamic>].
+  /// Throws an [ApiException] if the request fails.
+  Future<Map<String, dynamic>> getSegmentData(String id) async {
+    final baseUrl = 'https://ass-${_configuration.tenant}${_configuration.env.domainSuffix}.alloycdn.net';
+    final path = '';
+    final queryParams = {
+      'id': id,
+    };
+    return await get(baseUrl, path, queryParams: queryParams);
   }
 } 
