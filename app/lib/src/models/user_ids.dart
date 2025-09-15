@@ -15,10 +15,20 @@ class UserIDs {
   final Map<String, String>? externalIDs;
 
   /// @deprecated This field is deprecated and no longer used for advertising ID collection.
-  /// Use [getAdvertisingID()] method instead for dynamic advertising ID resolution.
-  /// This field is kept for backward compatibility only.
+  /// 
+  /// **Privacy Note**: Advertising ID collection is now handled automatically by the SDK
+  /// when proper permissions are granted by the host app. The SDK will:
+  /// 
+  /// - iOS: Collect IDFA only if user grants App Tracking Transparency permission
+  /// - Android: Collect AAID automatically (respects user's limit ad tracking setting)
+  /// 
+  /// Host apps must implement proper permission handling:
+  /// - iOS: Include NSUserTrackingUsageDescription and request ATT permission
+  /// - Android: Add com.google.android.gms.permission.AD_ID permission if needed
+  /// 
+  /// Use [AdvertisingId.id()] directly if you need to check advertising ID availability.
   @JsonKey(name: 'advertising_id')
-  @Deprecated('Use getAdvertisingID() method instead. This field is kept for backward compatibility only.')
+  @Deprecated('Advertising ID is now collected automatically by the SDK when permissions allow. This field is kept for backward compatibility only.')
   final String? advertisingID;
 
   UserIDs({
