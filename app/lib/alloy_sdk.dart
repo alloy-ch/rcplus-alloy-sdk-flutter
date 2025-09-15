@@ -86,10 +86,13 @@ class AlloySDK {
 
   Future<bool> initialize({required UserIDs userIDs}) async {
     // Check if consent is granted before initializing
-    final consentState = await _analyticsService.consentStateStream.first;
+    final consentState = await _analyticsService.consentStateStream
+      .timeout(const Duration(milliseconds: 300))
+      .firstWhere((state) => state == ConsentState.ready)
+      .catchError((_) => ConsentState.notInitialized);
+    
     if (consentState != ConsentState.ready) {
       _log.warning('Cannot initialize SDK: consent not granted (state: $consentState)');
-      // throw StateError('Consent must be granted to initialize the SDK');
       return false;
     }
     
