@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:async/async.dart';
 import 'package:alloy_sdk/src/internal/utility/alloy_key.dart';
 import 'package:alloy_sdk/src/internal/utility/preferences_observer.dart';
 import 'package:logging/logging.dart';
@@ -28,9 +29,19 @@ class TCFConsentService {
     _log.fine('Subscribing to TCF keys...');
     _subscription?.cancel();
 
-    // Observe only the TC string; recompute state when it changes
-    _subscription = PreferencesObserver.observe(AlloyKey.iabTcfTcString.value)
-        .listen((_) => _recomputeAndEmit());
+    // Observe all TCF keys; recompute state when any of them change
+    final tcStringStream = PreferencesObserver.observe(AlloyKey.iabTcfTcString.value);
+    final purposeConsentsStream = PreferencesObserver.observe(AlloyKey.iabTcfPurposeConsents.value);
+    final vendorConsentsStream = PreferencesObserver.observe(AlloyKey.iabTcfVendorConsents.value);
+    final cmpSdkIdStream = PreferencesObserver.observe(AlloyKey.iabTcfCmpSdkId.value);
+
+    // Merge all streams and listen for any changes
+    _subscription = StreamGroup.merge([
+      tcStringStream,
+      purposeConsentsStream,
+      vendorConsentsStream,
+      cmpSdkIdStream,
+    ]).listen((_) => _recomputeAndEmit());
   }
 
   Future<void> _recomputeAndEmit() async {
