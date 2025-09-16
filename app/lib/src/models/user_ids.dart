@@ -17,7 +17,6 @@ class UserIDs {
   UserIDs({
     this.ssoUserID,
     this.externalIDs,
-    @Deprecated('The advertisingID resolution is handled internally') this.advertisingID,
   });
 
   static Future<String?> getAdvertisingID() async {
