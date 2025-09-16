@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'alloy_sdk'
-  s.version          = '0.0.5'
+  s.version          = '0.1.0'
   s.summary          = 'Alloy SDK for Flutter - Analytics and user tracking platform'
   s.description      = <<-DESC
 Alloy SDK for Flutter provides analytics, user tracking, consent management, and contextual data services.
