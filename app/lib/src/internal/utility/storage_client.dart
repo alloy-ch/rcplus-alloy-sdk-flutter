@@ -44,4 +44,42 @@ class StorageClient {
   Future<void> remove(AlloyKey key) async {
     await _prefs.remove(key.value);
   }
+
+  /// Clear all user-related data from storage when consent is revoked.
+  /// 
+  /// This method implements the user's right to data deletion as required by privacy regulations.
+  /// It removes all stored user identifiers and tracking data while preserving
+  /// consent state information which may be required for legal compliance.
+  /// 
+  /// **Data Deleted**:
+  /// - User canonical ID and domain user ID
+  /// - Stored user identification JSON
+  /// - API error state flags
+  /// - User creation timestamps
+  /// 
+  /// **Data Preserved** (for legal compliance):
+  /// - IAB TCF consent strings (IABTCF_TCString, IABTCF_PurposeConsents, IABTCF_VendorConsents)
+  /// - CMP SDK ID (required for IAB TCF compliance)
+  /// 
+  /// These preserved consent records are managed by the host app's CMP and are 
+  /// required for legal compliance under GDPR Article 7(1) and similar regulations.
+  Future<void> clearUserData() async {
+    // Clear user identification data
+    await _prefs.remove(AlloyKey.canonicalUserid.value);
+    await _prefs.remove(AlloyKey.canonicalUseridCreatedAt.value);
+    await _prefs.remove(AlloyKey.storedUserIdsJson.value);
+    await _prefs.remove(AlloyKey.domainUserid.value);
+    await _prefs.remove(AlloyKey.domainUseridCreatedAt.value);
+    await _prefs.remove(AlloyKey.lastApiErrorOccurred.value);
+    
+    // Note: We preserve IAB TCF consent strings as they may be required
+    // for legal compliance and are managed by the host app's CMP:
+    // - IABTCF_TCString: Main consent string
+    // - IABTCF_PurposeConsents: Purpose-specific consent
+    // - IABTCF_VendorConsents: Vendor-specific consent
+    // - IABTCF_CmpSdkID: CMP identification
+    // 
+    // These records document the user's consent decisions and may be required
+    // for compliance audits under GDPR, CCPA, and other privacy regulations.
+  }
 }

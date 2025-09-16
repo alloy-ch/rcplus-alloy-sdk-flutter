@@ -35,12 +35,23 @@ class TrackingService {
     
     final endpoint = 'events-${configuration.tenant}${configuration.env.domainSuffix}.alloycdn.net';
 
+    // Advertising ID collection is optional and depends on user consent and app configuration
+    // The host app is responsible for handling App Tracking Transparency (iOS) or similar permissions
     String? advertisingId;
 
     try {
+      // Only attempt to collect advertising ID if supported by the platform
+      // Note: This requires proper permission handling by the host app:
+      // - iOS: NSUserTrackingUsageDescription in Info.plist and ATT permission request
+      // - Android: com.google.android.gms.permission.AD_ID permission in manifest
       advertisingId = await AdvertisingId.id(true);
     } catch (e) {
-      _log.warning('Error getting advertising ID: $e');
+      // Gracefully handle cases where advertising ID is not available
+      // This can occur when:
+      // - User has denied tracking permission
+      // - Device has limit ad tracking enabled
+      // - Platform doesn't support advertising ID
+      _log.info('Advertising ID not available: $e');
       advertisingId = null;
     }
 
@@ -105,6 +116,7 @@ class TrackingService {
       if (storedUserIDsJson.isNotEmpty) {
         final decodedJson = json.decode(storedUserIDsJson);
         userIDs = UserIDs.fromJson(decodedJson);
+        _log.info('Using stored UserIDs for page view tracking: $storedUserIDsJson');
       } else {
         _log.severe('UserIDs object is empty, returning early ...');
       }
@@ -153,14 +165,26 @@ class TrackingService {
     if (userIDs?.ssoUserID != null) {
       extendedAttributesData['sso_userid'] = userIDs!.ssoUserID;
     }
-    if (userIDs?.externalIDs != null && userIDs!.externalIDs!.isNotEmpty) {
-      extendedAttributesData['user_id_external'] = jsonEncode(userIDs.externalIDs);
+    Map<String, String> externalIds = userIDs?.externalIDs ?? {};
+    final adsId = await UserIDs.getAdvertisingID();
+    if (adsId != null && adsId.isNotEmpty) {
+      if (Platform.isAndroid) {
+        externalIds.putIfAbsent("aaid", () => adsId);
+      } else if (Platform.isIOS) {
+        externalIds.putIfAbsent("idfa", () => adsId);
+      }
+    }
+    try {
+      extendedAttributesData['user_id_external'] = jsonEncode(externalIds);
+    } catch (e) {
+      _log.warning('Error encoding external IDs to JSON: $e');
     }
 
     contexts.add(SelfDescribing(
       schema: 'iglu:com.alloy/extended_attributes/jsonschema/1-0-0',
       data: extendedAttributesData,
     ));
+    _log.info('Extended Attributes Data: $extendedAttributesData');
 
     _log.info('Tracking page view: ${parameters.pageURL}');
     await _tracker?.track(

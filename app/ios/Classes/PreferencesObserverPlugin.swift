@@ -4,15 +4,21 @@ import UIKit
 public class PreferencesObserverPlugin: NSObject, FlutterPlugin {
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = PreferencesObserverPlugin()
+        let instance: PreferencesObserverPlugin = PreferencesObserverPlugin()
         
         // Setup Method Channel for fetching values on-demand
-        let methodChannel = FlutterMethodChannel(name: "com.alloy.alloy_sdk/methods", binaryMessenger: registrar.messenger())
+        let methodChannel: FlutterMethodChannel = FlutterMethodChannel(
+            name: "com.alloy.alloy_sdk/methods",
+            binaryMessenger: registrar.messenger()
+        )
         registrar.addMethodCallDelegate(instance, channel: methodChannel)
         
         // Setup Event Channel for streaming all updates
-        let eventChannel: FlutterEventChannel = FlutterEventChannel(name: "com.alloy.alloy_sdk/stream", binaryMessenger: registrar.messenger())
-        let streamHandler = UserDefaultsStreamHandler()
+        let eventChannel: FlutterEventChannel = FlutterEventChannel(
+            name: "com.alloy.alloy_sdk/stream",
+            binaryMessenger: registrar.messenger()
+        )
+        let streamHandler: UserDefaultsStreamHandler = UserDefaultsStreamHandler()
         eventChannel.setStreamHandler(streamHandler)
     }
     
@@ -27,8 +33,8 @@ public class PreferencesObserverPlugin: NSObject, FlutterPlugin {
                 return
             }
             // Retrieve the value from standard UserDefaults for the requested key.
-            let value = UserDefaults.standard.object(forKey: key)
-            let serializedValue = UserDefaultsSerializer.serializeValue(value)
+            let value: Any? = UserDefaults.standard.object(forKey: key)
+            let serializedValue: Any? = UserDefaultsSerializer.serializeValue(value)
             result(serializedValue)
         } else {
             result(FlutterMethodNotImplemented)

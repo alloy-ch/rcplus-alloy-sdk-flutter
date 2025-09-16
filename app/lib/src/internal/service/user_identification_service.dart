@@ -35,14 +35,14 @@ class UserIdentificationService {
 
   Stream<IdentificationState> get stateStream => _stateController.stream;
 
+  /// Reset the identification state to notInitialized (called when consent is denied)
+  void resetState() {
+    _log.info('Resetting identification state to notInitialized');
+    _stateController.add(IdentificationState.notInitialized);
+  }
+
   Future<void> resolve({required UserIDs userIDs}) async {
     _log.info('Starting resolution for $userIDs');
-    if (await _shouldSkipResolution(userIDs)) {
-      _log.fine('Skipping resolution, user data is unchanged.');
-      _stateController.add(IdentificationState.ready);
-      return;
-    }
-
     final domainUserID = await _createDomainUserID();
     final canonicalID = _determineCanonicalID(domainUserID, userIDs);
     _log.fine('Determined canonical ID: $canonicalID');
@@ -58,42 +58,17 @@ class UserIdentificationService {
       await _storageClient.setString(AlloyKey.canonicalUserid, resolvedCanonicalId);
       await _storageClient.setInt(AlloyKey.canonicalUseridCreatedAt, createdAt);
       await _storageClient.setBool(AlloyKey.lastApiErrorOccurred, false);
+      _stateController.add(IdentificationState.ready);
 
     } on ApiException catch (e) {
       _log.severe('API error during canonical ID resolution: ${e.message}');
       await _storageClient.setBool(AlloyKey.lastApiErrorOccurred, true);
       await _storageClient.setString(AlloyKey.canonicalUserid, domainUserID);
+      _stateController.add(IdentificationState.ready);
     } finally {
       _log.fine('Storing user IDs and setting state to ready.');
       await _storageClient.setString(AlloyKey.storedUserIdsJson, json.encode(userIDs.toJson()));
-      _stateController.add(IdentificationState.ready);
     }
-  }
-
-  /// Determines whether user identification resolution should be skipped.
-  /// 
-  /// This method checks if the current user data is identical to the previously
-  /// stored user data, and if the last API call was successful. Resolution is
-  /// skipped if:
-  /// - No previous user data exists in storage
-  /// - The last API call resulted in an error
-  /// - The current user data matches the stored user data exactly
-  /// 
-  /// This optimization prevents unnecessary API calls when the user's identity
-  /// hasn't changed since the last resolution attempt.
-  /// 
-  /// [userIDs] - The current user identification data to compare against stored data.
-  /// 
-  /// Returns a [Future<bool>] that is `true` if resolution should be skipped,
-  /// `false` if resolution should proceed.
-  Future<bool> _shouldSkipResolution(UserIDs userIDs) async {
-    final lastApiError = await _storageClient.getBool(AlloyKey.lastApiErrorOccurred, defaultValue: false).first;
-    if (lastApiError) return false;
-
-    final storedUserIDsJson = await _storageClient.getString(AlloyKey.storedUserIdsJson, defaultValue: '').first;
-    if (storedUserIDsJson.isEmpty) return false;
-
-    return storedUserIDsJson == json.encode(userIDs.toJson());
   }
 
   /// Creates or retrieves a domain user ID for the current device.

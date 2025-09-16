@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:advertising_id/advertising_id.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -12,47 +14,37 @@ class UserIDs {
   @JsonKey(name: 'external_ids')
   final Map<String, String>? externalIDs;
 
-  @JsonKey(name: 'advertising_id')
-  final String? advertisingID;
-
   UserIDs({
     this.ssoUserID,
-    this.advertisingID,
     this.externalIDs,
   });
 
-  static Future<UserIDs> create({
-    String? ssoUserID,
-    required String? advertisingID,
-    required Map<String, String>? externalIDs,
-  }) async {
-    String? finalAdvertisingID = advertisingID;
-
-    if (advertisingID == null) {
-      try {
-        finalAdvertisingID = await AdvertisingId.id(true);
-      } catch (e) {
-        finalAdvertisingID = null;
-      }
+  static Future<String?> getAdvertisingID() async {
+    try {
+      final adId = await AdvertisingId.id(true);
+      return (adId?.isEmpty ?? true) ? null : adId;
+    } catch (e) {
+      return null;
     }
-    return UserIDs(
-      ssoUserID: ssoUserID,
-      advertisingID: finalAdvertisingID,
-      externalIDs: externalIDs,
-    );
   }
+
 
   factory UserIDs.fromJson(Map<String, dynamic> json) => _$UserIDsFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserIDsToJson(this);
 
-  Map<String, dynamic> toCombinedMap() {
+  Future<Map<String, dynamic>> toCombinedMap() async {
     final Map<String, dynamic> combined = <String, dynamic>{};
     if (ssoUserID != null) {
       combined['sso_userid'] = ssoUserID;
     }
+    final advertisingID = await getAdvertisingID();
     if (advertisingID != null) {
-      combined['advertiserUserId'] = advertisingID;
+      if (Platform.isAndroid) {
+        combined['aaid'] = advertisingID;
+      } else if (Platform.isIOS) {
+        combined['idfa'] = advertisingID;
+      }
     }
     if (externalIDs != null) {
       externalIDs!.forEach((key, value) {
