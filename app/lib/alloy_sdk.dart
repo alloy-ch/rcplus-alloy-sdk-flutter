@@ -21,6 +21,7 @@ export 'package:alloy_sdk/src/models/page_view_parameters.dart';
 export 'package:alloy_sdk/src/models/user_ids.dart';
 export 'package:alloy_sdk/src/internal/service/consent_state.dart';
 
+
 /// Alloy Flutter SDK - Privacy-compliant analytics and user tracking
 /// 
 /// This SDK provides analytics, user identification, and contextual data services
@@ -112,9 +113,12 @@ class AlloySDK {
 
   Future<bool> initialize({required UserIDs userIDs}) async {
     // Check if consent is granted before initializing
-    final consentState = await _analyticsService.consentStateStream.first;
+    final consentState = await _analyticsService.consentStateStream
+      .timeout(const Duration(milliseconds: 300))
+      .firstWhere((state) => state == ConsentState.ready)
+      .catchError((_) => ConsentState.notInitialized);
+    
     if (consentState != ConsentState.ready) {
-      _log.warning('Cannot initialize SDK: consent not granted (state: $consentState)');
       throw StateError('User consent must be granted before SDK initialization. Current state: $consentState');
     }
     
