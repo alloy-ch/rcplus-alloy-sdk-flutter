@@ -35,12 +35,23 @@ class TrackingService {
     
     final endpoint = 'events-${configuration.tenant}${configuration.env.domainSuffix}.alloycdn.net';
 
+    // Advertising ID collection is optional and depends on user consent and app configuration
+    // The host app is responsible for handling App Tracking Transparency (iOS) or similar permissions
     String? advertisingId;
 
     try {
+      // Only attempt to collect advertising ID if supported by the platform
+      // Note: This requires proper permission handling by the host app:
+      // - iOS: NSUserTrackingUsageDescription in Info.plist and ATT permission request
+      // - Android: com.google.android.gms.permission.AD_ID permission in manifest
       advertisingId = await AdvertisingId.id(true);
     } catch (e) {
-      _log.warning('Error getting advertising ID: $e');
+      // Gracefully handle cases where advertising ID is not available
+      // This can occur when:
+      // - User has denied tracking permission
+      // - Device has limit ad tracking enabled
+      // - Platform doesn't support advertising ID
+      _log.info('Advertising ID not available: $e');
       advertisingId = null;
     }
 

@@ -25,6 +25,9 @@ class ConsentService {
 
   Stream<ConsentState> get stateStream => _stateController.stream;
 
+  /// Current consent state for synchronous access
+  ConsentState get currentState => _stateController.value;
+
   void _listenForConsentChanges() {
     _log.fine('Subscribing to TCF and Metadata state streams.');
     _tcfSubscription = _tcfConsentService.stateStream.listen((tcfState) {
