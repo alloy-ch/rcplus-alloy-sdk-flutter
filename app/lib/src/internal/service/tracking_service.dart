@@ -105,6 +105,7 @@ class TrackingService {
       if (storedUserIDsJson.isNotEmpty) {
         final decodedJson = json.decode(storedUserIDsJson);
         userIDs = UserIDs.fromJson(decodedJson);
+        _log.info('Using stored UserIDs for page view tracking: $storedUserIDsJson');
       } else {
         _log.severe('UserIDs object is empty, returning early ...');
       }
@@ -153,27 +154,26 @@ class TrackingService {
     if (userIDs?.ssoUserID != null) {
       extendedAttributesData['sso_userid'] = userIDs!.ssoUserID;
     }
-    final externalIds = userIDs?.externalIDs;
-    if (externalIds != null && externalIds.isNotEmpty) {
-      final adsId = userIDs?.advertisingID;
-      if (adsId != null && adsId.isNotEmpty) {
-        if (Platform.isAndroid) {
-          externalIds.putIfAbsent("aaid", () => adsId);
-        } else if (Platform.isIOS) {
-          externalIds.putIfAbsent("idfa", () => adsId);
-        }
+    Map<String, String> externalIds = userIDs?.externalIDs ?? {};
+    final adsId = await UserIDs.getAdvertisingID();
+    if (adsId != null && adsId.isNotEmpty) {
+      if (Platform.isAndroid) {
+        externalIds.putIfAbsent("aaid", () => adsId);
+      } else if (Platform.isIOS) {
+        externalIds.putIfAbsent("idfa", () => adsId);
       }
-      try {
-        extendedAttributesData['user_id_external'] = jsonEncode(externalIds);
-      } catch (e) {
-        _log.warning('Error encoding external IDs to JSON: $e');
-      }
+    }
+    try {
+      extendedAttributesData['user_id_external'] = jsonEncode(externalIds);
+    } catch (e) {
+      _log.warning('Error encoding external IDs to JSON: $e');
     }
 
     contexts.add(SelfDescribing(
       schema: 'iglu:com.alloy/extended_attributes/jsonschema/1-0-0',
       data: extendedAttributesData,
     ));
+    _log.info('Extended Attributes Data: $extendedAttributesData');
 
     _log.info('Tracking page view: ${parameters.pageURL}');
     await _tracker?.track(

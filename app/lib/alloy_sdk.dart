@@ -20,6 +20,7 @@ export 'package:alloy_sdk/src/models/alloy_log_level.dart';
 export 'package:alloy_sdk/src/models/contextual_data_response.dart';
 export 'package:alloy_sdk/src/models/page_view_parameters.dart';
 export 'package:alloy_sdk/src/models/user_ids.dart';
+export 'package:alloy_sdk/src/internal/service/consent_state.dart';
 
 class AlloySDK {
 
@@ -40,6 +41,8 @@ class AlloySDK {
   Future<String?> get visitorID async {
     return await _storageClient.getString(AlloyKey.canonicalUserid, defaultValue: '').first;
   }
+
+  Stream<ConsentState> get consentStateStream => _analyticsService.consentStateStream;
 
   void _setupLogger() {
     Logger.root.level = Level.ALL;
@@ -83,10 +86,13 @@ class AlloySDK {
 
   Future<bool> initialize({required UserIDs userIDs}) async {
     // Check if consent is granted before initializing
-    final consentState = await _analyticsService.consentStateStream.first;
+    final consentState = await _analyticsService.consentStateStream
+      .timeout(const Duration(milliseconds: 300))
+      .firstWhere((state) => state == ConsentState.ready)
+      .catchError((_) => ConsentState.notInitialized);
+    
     if (consentState != ConsentState.ready) {
       _log.warning('Cannot initialize SDK: consent not granted (state: $consentState)');
-      // throw StateError('Consent must be granted to initialize the SDK');
       return false;
     }
     
