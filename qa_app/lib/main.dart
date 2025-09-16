@@ -18,8 +18,7 @@ void main() async {
     ssoUserID: uuid.v4(),
     externalIDs: {
       'testID': uuid.v4(),
-    },
-    advertisingID: uuid.v4(),
+    }
   );
   
   // Initialize Alloy SDK with development configuration

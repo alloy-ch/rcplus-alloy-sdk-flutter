@@ -14,17 +14,9 @@ class UserIDs {
   @JsonKey(name: 'external_ids')
   final Map<String, String>? externalIDs;
 
-  /// @deprecated This field is deprecated and no longer used for advertising ID collection.
-  /// Use [getAdvertisingID()] method instead for dynamic advertising ID resolution.
-  /// This field is kept for backward compatibility only.
-  @JsonKey(name: 'advertising_id')
-  @Deprecated('Use getAdvertisingID() method instead. This field is kept for backward compatibility only.')
-  final String? advertisingID;
-
   UserIDs({
     this.ssoUserID,
     this.externalIDs,
-    @Deprecated('The advertisingID resolution is handled internally') this.advertisingID,
   });
 
   static Future<String?> getAdvertisingID() async {
