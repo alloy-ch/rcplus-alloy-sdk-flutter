@@ -114,7 +114,7 @@ class AlloySDK {
   Future<bool> initialize({required UserIDs userIDs}) async {
     // Check if consent is granted before initializing
     final consentState = await _analyticsService.consentStateStream
-      .timeout(const Duration(milliseconds: 300))
+      .timeout(const Duration(milliseconds: 2000))
       .firstWhere((state) => state == ConsentState.ready)
       .catchError((_) => ConsentState.notInitialized);
     
