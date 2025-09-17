@@ -1,6 +1,6 @@
 # Alloy Flutter SDK
 
-Current version: **v0.1.0**
+Current version: **v0.1.1**
 
 ## Description
 
