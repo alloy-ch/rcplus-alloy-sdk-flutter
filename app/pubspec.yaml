@@ -1,7 +1,7 @@
 ---
 name: alloy_sdk
 description: A pure Dart SDK for Flutter that provides contextual data fetching, user identification, and analytics tracking capabilities.
-version: 0.1.0
+version: 0.1.1
 homepage: https://doc.alloy.ch/ingestion/tracking/alloy-pixel-flutter-sdk
 
 environment:
