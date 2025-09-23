@@ -106,13 +106,12 @@ devtools_options.yaml
 /linux/
 /windows/
 /web/
-/ios/Pods/
 /ios/Flutter/ephemeral/
-/ios/Runner.xcworkspace/
-/ios/Runner.xcodeproj/
-/ios/RunnerTests/
-/ios/Runner/Assets.xcassets/
-/ios/Runner/Base.lproj/
+# /ios/Runner.xcworkspace/ - KEEP: needed for builds
+# /ios/Runner.xcodeproj/ - KEEP: needed for builds
+# /ios/RunnerTests/ - KEEP: needed for builds
+# /ios/Runner/Assets.xcassets/ - KEEP: needed for builds
+# /ios/Runner/Base.lproj/ - KEEP: needed for builds
 /android/.gradle/
 # /android/gradlew* - KEEP: needed for builds
 /android/local.properties
