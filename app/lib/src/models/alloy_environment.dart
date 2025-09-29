@@ -10,7 +10,7 @@ enum AlloyEnvironment {
       case AlloyEnvironment.staging:
         return '.s';
       case AlloyEnvironment.production:
-        return '.';
+        return '';
     }
   }
 }
