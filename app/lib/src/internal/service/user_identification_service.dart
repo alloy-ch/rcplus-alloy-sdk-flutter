@@ -83,7 +83,7 @@ class UserIdentificationService {
   /// Returns a [Future<String>] containing the domain user ID.
   Future<String> _createDomainUserID() async {
     final storedDomainId = await _storageClient.getString(AlloyKey.domainUserid, defaultValue: '').first;
-    // NOTE-ab: logic is introduced because of previous bug where deviceInformation.getAndroidId() for old versions of Android is not unique
+    // NOTE-ab: logic is introduced because of previous bug where deviceInfo.androidInfo.id returns build id instead of device id
     // so we need to reset domainUserId
     final wasReset = await _storageClient.getBool(AlloyKey.domainUseridWasReset, defaultValue: false).first;
     if (storedDomainId.isNotEmpty && wasReset) {
@@ -98,7 +98,7 @@ class UserIdentificationService {
       deviceId = iosInfo.identifierForVendor;
     }
     // NOTE-ab: we ditch the logic to calculate domainUserId based on deviceInfo.androidInfo.id
-    // because it returned build id instead of device id
+    // because it returned build id (which is not unique) instead of device id
 
     String newDomainId = deviceId ?? _uuid.v4();
     newDomainId = newDomainId.toLowerCase();
