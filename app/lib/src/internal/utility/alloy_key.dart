@@ -7,6 +7,7 @@ enum AlloyKey {
   canonicalUseridCreatedAt,
   storedUserIdsJson,
   lastApiErrorOccurred,
+  domainUseridWasReset,
   domainUserid,
   domainUseridCreatedAt;
 
@@ -28,6 +29,8 @@ enum AlloyKey {
         return 'aly_stored_user_ids_json';
       case AlloyKey.lastApiErrorOccurred:
         return 'aly_last_api_error_occurred';
+      case AlloyKey.domainUseridWasReset:
+        return 'aly_domain_userid_was_reset';
       case AlloyKey.domainUserid:
         return 'aly_domain_userid';
       case AlloyKey.domainUseridCreatedAt:
