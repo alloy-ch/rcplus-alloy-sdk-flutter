@@ -22,7 +22,22 @@ class UserIDs {
   static Future<String?> getAdvertisingID() async {
     try {
       final adId = await AdvertisingId.id(true);
-      return (adId?.isEmpty ?? true) ? null : adId;
+      
+      // Check if advertising ID is null, empty, or a known default/placeholder value
+      if (adId?.isEmpty ?? true) {
+        return null;
+      }
+      
+      // Common default values returned when advertising tracking is disabled
+      const defaultValues = {
+        '00000000-0000-0000-0000-000000000000',
+      };
+      
+      if (defaultValues.contains(adId)) {
+        return null;
+      }
+      
+      return adId;
     } catch (e) {
       return null;
     }
