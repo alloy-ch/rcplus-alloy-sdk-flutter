@@ -84,7 +84,7 @@ class ApiClient {
 
   /// Fetches contextual data for the given [url] by calling the `/contextual-data` endpoint.
   ///
-  /// When [contentId] is provided, it is sent as the `contentId` query parameter.
+  /// When [contentId] is provided, it is trimmed and sent as the `contentId` query parameter.
   /// A null, empty or whitespace-only [contentId] omits the parameter entirely.
   ///
   /// Returns the decoded JSON response as a [Map<String, dynamic>].
@@ -92,11 +92,12 @@ class ApiClient {
   Future<Map<String, dynamic>> getContextualData(String url, {String? contentId}) async {
     final baseUrl = 'https://contextual${_configuration.env.domainSuffix}.alloy.ch';
     final path = '';
+    final trimmedContentId = contentId?.trim();
     final queryParams = {
       'uri': url,
       // The contextual API expects camelCase `contentId`, unlike the
       // tracking pipeline, which sends the same concept as `content_id`.
-      if (contentId != null && contentId.trim().isNotEmpty) 'contentId': contentId,
+      if (trimmedContentId != null && trimmedContentId.isNotEmpty) 'contentId': trimmedContentId,
     };
     return await get(baseUrl, path, queryParams: queryParams);
   }

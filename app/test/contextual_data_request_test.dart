@@ -43,6 +43,12 @@ void main() {
     expect(interceptor.lastRequest!.uri.query, contains('contentId=article-12345'));
   });
 
+  test('trims surrounding whitespace from contentId', () async {
+    await apiClient.getContextualData(url, contentId: ' article-12345\n');
+
+    expect(interceptor.lastRequest!.queryParameters, {'uri': url, 'contentId': 'article-12345'});
+  });
+
   for (final blank in ['', '   ', '\n\t']) {
     test('omits contentId for blank value ${blank.codeUnits}', () async {
       await apiClient.getContextualData(url, contentId: blank);
