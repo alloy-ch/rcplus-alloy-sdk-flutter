@@ -79,8 +79,8 @@ class AnalyticsService {
     );
   }
 
-  Future<ContextualDataResponse> fetchContextualData({required String url}) async {
-    return await _contextualService.fetchContextualData(url: url);
+  Future<ContextualDataResponse> fetchContextualData({required String url, String? contentId}) async {
+    return await _contextualService.fetchContextualData(url: url, contentId: contentId);
   }
 
   Future<SegmentDataResponse> fetchSegmentData({String? visitorId}) async {
