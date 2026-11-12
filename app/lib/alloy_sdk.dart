@@ -143,8 +143,12 @@ class AlloySDK {
     await _analyticsService.resetState();
   }
 
-  Future<ContextualDataResponse> fetchContextualData({required String url}) async {
-    return await _analyticsService.fetchContextualData(url: url);
+  /// Fetches contextual data (IAB categories, topics, brand safety) for the given [url].
+  ///
+  /// [contentId] is the identifier of the content shown on the screen, sent as the
+  /// `contentId` query parameter. Pass null, an empty or a whitespace-only string to omit it.
+  Future<ContextualDataResponse> fetchContextualData({required String url, String? contentId}) async {
+    return await _analyticsService.fetchContextualData(url: url, contentId: contentId);
   }
 
   Future<SegmentDataResponse> fetchSegmentData() async {

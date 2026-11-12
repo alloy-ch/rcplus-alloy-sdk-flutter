@@ -616,18 +616,22 @@ class _QAHomePageState extends State<QAHomePage> with TickerProviderStateMixin {
 
   void _fetchContextualData() async {
     try {
-      final sampleUrls = [
-        'https://example.com/home',
-        'https://www.blick.ch/news/politik/article123',
-        'https://www.blick.ch/',
+      // Some samples carry a content ID so the request also exercises the contentId path.
+      final samples = <({String url, String? contentId})>[
+        (url: 'https://example.com/home', contentId: null),
+        (url: 'https://www.blick.ch/news/politik/article123', contentId: 'test-content-id'),
+        (url: 'https://www.blick.ch/', contentId: null),
       ];
-      
-      final url = sampleUrls[DateTime.now().millisecondsSinceEpoch % sampleUrls.length];
-      
-      final response = await AlloySDK.instance.fetchContextualData(url: url);
-      
+
+      final sample = samples[DateTime.now().millisecondsSinceEpoch % samples.length];
+      final url = sample.url;
+
+      final response = await AlloySDK.instance.fetchContextualData(url: url, contentId: sample.contentId);
+
       if (mounted) {
         final details = '''
+URL: $url
+Content ID: ${sample.contentId ?? 'N/A'}
 Canonical ID: ${response.canonicalID ?? 'N/A'}
 Brand Safety: ${response.isBrandsafe ?? 'N/A'}
 Attribution: ${response.attribution ?? 'N/A'}
