@@ -5,11 +5,13 @@ enum AlloyKey {
   iabTcfCmpSdkId,
   canonicalUserid,
   canonicalUseridCreatedAt,
-  storedUserIdsJson,
-  lastApiErrorOccurred,
   domainUseridWasReset,
   domainUserid,
-  domainUseridCreatedAt;
+  domainUseridCreatedAt,
+  useridLastUsedAt,
+  // No longer written, removed from devices that still have them
+  legacyStoredUserIdsJson,
+  legacyLastApiErrorOccurred;
 
   String get value {
     switch (this) {
@@ -25,16 +27,18 @@ enum AlloyKey {
         return 'aly_canonical_userid';
       case AlloyKey.canonicalUseridCreatedAt:
         return 'aly_canonical_userid_created_at';
-      case AlloyKey.storedUserIdsJson:
-        return 'aly_stored_user_ids_json';
-      case AlloyKey.lastApiErrorOccurred:
-        return 'aly_last_api_error_occurred';
       case AlloyKey.domainUseridWasReset:
         return 'aly_domain_userid_was_reset';
       case AlloyKey.domainUserid:
         return 'aly_domain_userid';
       case AlloyKey.domainUseridCreatedAt:
         return 'aly_domain_userid_created_at';
+      case AlloyKey.useridLastUsedAt:
+        return 'aly_userid_last_used_at';
+      case AlloyKey.legacyStoredUserIdsJson:
+        return 'aly_stored_user_ids_json';
+      case AlloyKey.legacyLastApiErrorOccurred:
+        return 'aly_last_api_error_occurred';
     }
   }
 }

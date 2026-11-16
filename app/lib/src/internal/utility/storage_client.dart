@@ -45,6 +45,21 @@ class StorageClient {
     await _prefs.remove(key.value);
   }
 
+  /// Remove the domain and canonical user IDs and their timestamps.
+  Future<void> removeUserIds() async {
+    await _prefs.remove(AlloyKey.canonicalUserid.value);
+    await _prefs.remove(AlloyKey.canonicalUseridCreatedAt.value);
+    await _prefs.remove(AlloyKey.domainUserid.value);
+    await _prefs.remove(AlloyKey.domainUseridCreatedAt.value);
+    await _prefs.remove(AlloyKey.useridLastUsedAt.value);
+  }
+
+  /// Remove the keys that older SDK versions wrote and this one no longer uses.
+  Future<void> removeLegacyKeys() async {
+    await _prefs.remove(AlloyKey.legacyStoredUserIdsJson.value);
+    await _prefs.remove(AlloyKey.legacyLastApiErrorOccurred.value);
+  }
+
   /// Clear all user-related data from storage when consent is revoked.
   /// 
   /// This method implements the user's right to data deletion as required by privacy regulations.
@@ -53,9 +68,7 @@ class StorageClient {
   /// 
   /// **Data Deleted**:
   /// - User canonical ID and domain user ID
-  /// - Stored user identification JSON
-  /// - API error state flags
-  /// - User creation timestamps
+  /// - User creation and last-use timestamps
   /// 
   /// **Data Preserved** (for legal compliance):
   /// - IAB TCF consent strings (IABTCF_TCString, IABTCF_PurposeConsents, IABTCF_VendorConsents)
@@ -65,12 +78,8 @@ class StorageClient {
   /// required for legal compliance under GDPR Article 7(1) and similar regulations.
   Future<void> clearUserData() async {
     // Clear user identification data
-    await _prefs.remove(AlloyKey.canonicalUserid.value);
-    await _prefs.remove(AlloyKey.canonicalUseridCreatedAt.value);
-    await _prefs.remove(AlloyKey.storedUserIdsJson.value);
-    await _prefs.remove(AlloyKey.domainUserid.value);
-    await _prefs.remove(AlloyKey.domainUseridCreatedAt.value);
-    await _prefs.remove(AlloyKey.lastApiErrorOccurred.value);
+    await removeUserIds();
+    await removeLegacyKeys();
     
     // Note: We preserve IAB TCF consent strings as they may be required
     // for legal compliance and are managed by the host app's CMP:

@@ -91,39 +91,26 @@ class TrackingService {
     _isAllowedToTrack = true;
   }
 
-  Future<void> stop() async {
+  Future<void> stop({UserIDs? userIDs}) async {
     _log.info('Stopping');
     if (!_isAllowedToTrack) {
       return;
     }
-    await trackPageView(parameters: PageViewParameters.empty());
+    await trackPageView(parameters: PageViewParameters.empty(), userIDs: userIDs);
     _isAllowedToTrack = false;
   }
 
   Future<void> trackPageView({
     required PageViewParameters parameters,
+    UserIDs? userIDs,
   }) async {
     if (!_isAllowedToTrack) {
       _log.info('Ignoring page view event');
       return;
     }
 
-    final storedUserIDsJson = await _storageClient.getString(AlloyKey.storedUserIdsJson, defaultValue: '').first;
-
-    UserIDs? userIDs;
-
-    try {
-      if (storedUserIDsJson.isNotEmpty) {
-        final decodedJson = json.decode(storedUserIDsJson);
-        userIDs = UserIDs.fromJson(decodedJson);
-        _log.info('Using stored UserIDs for page view tracking: $storedUserIDsJson');
-      } else {
-        _log.severe('UserIDs object is empty, returning early ...');
-      }
-    } on FormatException catch (e) {
-      _log.severe('Error parsing JSON: $e');
-    } catch (e) {
-      _log.severe('An unexpected error occurred during deserialization: $e');
+    if (userIDs == null) {
+      _log.severe('No UserIDs passed for page view tracking');
     }
 
     final contexts = <SelfDescribing>[];
@@ -165,7 +152,7 @@ class TrackingService {
     if (userIDs?.ssoUserID != null) {
       extendedAttributesData['sso_userid'] = userIDs!.ssoUserID;
     }
-    Map<String, String> externalIds = userIDs?.externalIDs ?? {};
+    final externalIds = <String, String>{...?userIDs?.externalIDs};
     final adsId = await UserIDs.getAdvertisingID();
     if (adsId != null && adsId.isNotEmpty) {
       if (Platform.isAndroid) {
