@@ -16,6 +16,9 @@ dependencies:
   # HTTP client for API requests
   dio: ^5.7.0
 
+  # Device information for user identification
+  device_info_plus: ^11.5.0
+
   # Snowplow analytics tracking
   snowplow_tracker: ^0.8.0
 
