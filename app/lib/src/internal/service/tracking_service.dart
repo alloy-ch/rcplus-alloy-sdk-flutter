@@ -109,10 +109,6 @@ class TrackingService {
       return;
     }
 
-    if (userIDs == null) {
-      _log.severe('No UserIDs passed for page view tracking');
-    }
-
     final contexts = <SelfDescribing>[];
 
     final pageViewData = <String, dynamic>{
