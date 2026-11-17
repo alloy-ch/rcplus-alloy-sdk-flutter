@@ -21,10 +21,10 @@ void main() async {
     }
   );
   
-  // Initialize Alloy SDK with development configuration
+  // Initialize Alloy SDK against staging
   await AlloySDK.instance.start(
     configuration: AlloyConfiguration(
-      tenant: 'demo',
+      tenant: 'smg',
       env: AlloyEnvironment.staging,
       appID: 'qa-flutter-app',
       logLevel: AlloyLogLevel.debug,
