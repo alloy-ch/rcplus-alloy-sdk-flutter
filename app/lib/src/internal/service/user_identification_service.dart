@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:alloy_sdk/src/internal/utility/uuid+v5.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:alloy_sdk/src/internal/network/api_client.dart';
 import 'package:alloy_sdk/src/internal/network/api_exception.dart';
@@ -94,9 +92,9 @@ class UserIdentificationService {
   /// Creates or retrieves a domain user ID for the current device.
   /// 
   /// This method first checks if a domain user ID already exists in storage.
-  /// If found, it returns the existing ID. If not, it creates a new one using
-  /// the device's identifier (iOS: identifierForVendor, Android: device ID)
-  /// or generates a UUID v4 as fallback.
+  /// If found, it returns the existing ID. If not, it creates a random UUID v4.
+  /// It is not derived from identifierForVendor on iOS, which would return the
+  /// same ID again after the stored one expired or was cleared.
   /// 
   /// The newly created domain user ID is stored along with its creation timestamp.
   /// 
@@ -111,17 +109,7 @@ class UserIdentificationService {
     }
 
     _log.fine('No domain user ID found, creating a new one.');
-    String? deviceId;
-    final deviceInfo = DeviceInfoPlugin();
-    if (Platform.isIOS) {
-      final iosInfo = await deviceInfo.iosInfo;
-      deviceId = iosInfo.identifierForVendor;
-    }
-    // NOTE-ab: we ditch the logic to calculate domainUserId based on deviceInfo.androidInfo.id
-    // because it returned build id (which is not unique) instead of device id
-
-    String newDomainId = deviceId ?? _uuid.v4();
-    newDomainId = newDomainId.toLowerCase();
+    final newDomainId = _uuid.v4().toLowerCase();
     _log.fine('New domain user ID created: $newDomainId');
     await _storageClient.setString(AlloyKey.domainUserid, newDomainId);
     await _storageClient.setInt(AlloyKey.domainUseridCreatedAt, DateTime.now().millisecondsSinceEpoch);
