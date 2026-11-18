@@ -42,6 +42,7 @@ class AnalyticsService {
     _metadataService = MetadataService(apiClient: _apiClient, storageClient: storageClient, configuration: configuration);
     _consentService = ConsentService(tcfConsentService: _tcfConsentService, metadataService: _metadataService);
     _userIdentificationService = UserIdentificationService(apiClient: _apiClient, storageClient: storageClient);
+    await _userIdentificationService.expireUserIdsIfUnused();
     _trackingService = TrackingService(storageClient: storageClient);
     _segmentService = SegmentService(apiClient: _apiClient, consentService: _consentService);
 
@@ -75,7 +76,8 @@ class AnalyticsService {
   Future<void> trackPageView({required PageViewParameters parameters}) async {
     _log.info('Tracking page view for: ${parameters.pageURL}');
     await _trackingService.trackPageView(
-        parameters: parameters
+        parameters: parameters,
+        userIDs: _userIdentificationService.userIDs,
     );
   }
 
@@ -97,7 +99,7 @@ class AnalyticsService {
 
   /// Resets all service states when user consent is withdrawn
   Future<void> resetState() async {
-    await _trackingService.stop();
+    await _trackingService.stop(userIDs: _userIdentificationService.userIDs);
     await _storageClient.clearUserData();
     _userIdentificationService.resetState();
   }

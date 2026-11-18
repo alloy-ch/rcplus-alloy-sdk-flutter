@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:alloy_sdk/src/internal/utility/uuid+v5.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:alloy_sdk/src/internal/network/api_client.dart';
 import 'package:alloy_sdk/src/internal/network/api_exception.dart';
@@ -17,6 +14,9 @@ import 'package:rxdart/rxdart.dart';
 
 class UserIdentificationService {
 
+  /// Stored user IDs expire after a year without use, like the web SDK's cookies.
+  static const userIdMaxAge = Duration(days: 365);
+
   final _log = Logger('UserIdentificationService');
 
   final ApiClient _apiClient;
@@ -26,6 +26,11 @@ class UserIdentificationService {
   final _stateController = BehaviorSubject<IdentificationState>.seeded(IdentificationState.notInitialized);
 
   final _uuid = const Uuid();
+
+  UserIDs? _userIDs;
+
+  /// The user IDs passed to the last resolution, kept in memory only.
+  UserIDs? get userIDs => _userIDs;
 
   UserIdentificationService({
     required ApiClient apiClient,
@@ -38,11 +43,29 @@ class UserIdentificationService {
   /// Reset the identification state to notInitialized (called when consent is denied)
   void resetState() {
     _log.info('Resetting identification state to notInitialized');
+    _userIDs = null;
     _stateController.add(IdentificationState.notInitialized);
+  }
+
+  /// Removes the domain and canonical user IDs when they have not been used for [userIdMaxAge],
+  /// so that new ones are generated on the next resolution.
+  /// IDs stored before the expiry existed get the current time as their last use.
+  Future<void> expireUserIdsIfUnused({DateTime? now}) async {
+    final nowMs = (now ?? DateTime.now()).millisecondsSinceEpoch;
+    await _storageClient.removeLegacyKeys();
+    final lastUsedAt = await _storageClient.getInt(AlloyKey.useridLastUsedAt, defaultValue: 0).first;
+    if (lastUsedAt == 0) {
+      await _storageClient.setInt(AlloyKey.useridLastUsedAt, nowMs);
+    } else if (nowMs - lastUsedAt > userIdMaxAge.inMilliseconds) {
+      _log.info('Stored user IDs expired after a year without use');
+      await _storageClient.removeUserIds();
+    }
   }
 
   Future<void> resolve({required UserIDs userIDs}) async {
     _log.info('Starting resolution for $userIDs');
+    _userIDs = userIDs;
+    await _storageClient.setInt(AlloyKey.useridLastUsedAt, DateTime.now().millisecondsSinceEpoch);
     final domainUserID = await _createDomainUserID();
     final canonicalID = _determineCanonicalID(domainUserID, userIDs);
     _log.fine('Determined canonical ID: $canonicalID');
@@ -57,26 +80,21 @@ class UserIdentificationService {
 
       await _storageClient.setString(AlloyKey.canonicalUserid, resolvedCanonicalId);
       await _storageClient.setInt(AlloyKey.canonicalUseridCreatedAt, createdAt);
-      await _storageClient.setBool(AlloyKey.lastApiErrorOccurred, false);
       _stateController.add(IdentificationState.ready);
 
     } on ApiException catch (e) {
       _log.severe('API error during canonical ID resolution: ${e.message}');
-      await _storageClient.setBool(AlloyKey.lastApiErrorOccurred, true);
       await _storageClient.setString(AlloyKey.canonicalUserid, domainUserID);
       _stateController.add(IdentificationState.ready);
-    } finally {
-      _log.fine('Storing user IDs and setting state to ready.');
-      await _storageClient.setString(AlloyKey.storedUserIdsJson, json.encode(userIDs.toJson()));
     }
   }
 
   /// Creates or retrieves a domain user ID for the current device.
   /// 
   /// This method first checks if a domain user ID already exists in storage.
-  /// If found, it returns the existing ID. If not, it creates a new one using
-  /// the device's identifier (iOS: identifierForVendor, Android: device ID)
-  /// or generates a UUID v4 as fallback.
+  /// If found, it returns the existing ID. If not, it creates a random UUID v4.
+  /// It is not derived from identifierForVendor on iOS, which would return the
+  /// same ID again after the stored one expired or was cleared.
   /// 
   /// The newly created domain user ID is stored along with its creation timestamp.
   /// 
@@ -91,17 +109,7 @@ class UserIdentificationService {
     }
 
     _log.fine('No domain user ID found, creating a new one.');
-    String? deviceId;
-    final deviceInfo = DeviceInfoPlugin();
-    if (Platform.isIOS) {
-      final iosInfo = await deviceInfo.iosInfo;
-      deviceId = iosInfo.identifierForVendor;
-    }
-    // NOTE-ab: we ditch the logic to calculate domainUserId based on deviceInfo.androidInfo.id
-    // because it returned build id (which is not unique) instead of device id
-
-    String newDomainId = deviceId ?? _uuid.v4();
-    newDomainId = newDomainId.toLowerCase();
+    final newDomainId = _uuid.v4().toLowerCase();
     _log.fine('New domain user ID created: $newDomainId');
     await _storageClient.setString(AlloyKey.domainUserid, newDomainId);
     await _storageClient.setInt(AlloyKey.domainUseridCreatedAt, DateTime.now().millisecondsSinceEpoch);

@@ -112,8 +112,8 @@ All SDK operations include comprehensive error handling and logging. Check the F
 
 ## Configuration
 
-The app initializes the SDK with development settings:
-- **Tenant**: `demo`
+The app initializes the SDK against staging:
+- **Tenant**: `smg`
 - **Environment**: `AlloyEnvironment.staging`
 - **App ID**: `qa-flutter-app`
 - **Log Level**: `AlloyLogLevel.debug`
